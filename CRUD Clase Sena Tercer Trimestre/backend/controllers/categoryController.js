@@ -106,7 +106,7 @@ exports.getCategories = async (req, res) => {
         //includeInactive=true permite ver desactivadas
         const includeInactive = req.query.includeInactive === 'true';
         const activeFilter = includeInactive ? {} : { active: { $ne: false } };
-        const categories = await Category.find(activeFilter).sort({ cretedAt: -1 });
+        const categories = await Category.find(activeFilter).sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             data: categories,
@@ -122,7 +122,7 @@ exports.getCategories = async (req, res) => {
 };
 
 /**
- * READ obtener  una categorais especificar id 
+ * READ obtener  una categoria especificar id 
  * GET /api/Categories/:id
  */
 
