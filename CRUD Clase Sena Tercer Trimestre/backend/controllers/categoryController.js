@@ -26,7 +26,7 @@ exports.createCategory = async (req, res) => {
         const { name, descripcion } = req.body;
         //validacion de los campos de entrada
         if (!name || typeof name !== 'string' || !name.trim()) {
-            return res, status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'El nombre es obligatorio debe ser texto valido',
 
@@ -34,7 +34,7 @@ exports.createCategory = async (req, res) => {
         }
 
         if (!descripcion || typeof name !== 'string' || !name.trim()) {
-            return res, status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'El descripción es obligatorio debe ser texto valido',
 

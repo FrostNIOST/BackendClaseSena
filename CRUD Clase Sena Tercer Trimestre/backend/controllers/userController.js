@@ -16,7 +16,6 @@
  * updateUser: actualizar datos de un usuario con validacion y control de acceso
  * deleteUser: eliminar un usuario permanentemente (solo admin) o desactivar un usuario (admin y coordinador)
  * 
- * 
 */
 
 
@@ -127,3 +126,193 @@ exports.getUserById = async (req, res) => {
         });
     }
 };
+
+
+exports.createUser = async (req, res) => {
+    try {
+        const { username, email, password, role } = req.body;
+
+        //crear usuario nuevo
+        const user = new User({
+            username,
+            email,
+            password,
+            role,
+        });
+
+
+        //guardar en la base de datos
+        const savedUser = await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Usuario creado exitosamente',
+            user: {
+                id: savedUser._id,
+                username: savedUser.username,
+                email: savedUser.email,
+                role: savedUser.role,
+            }
+        });
+
+
+    } catch (error) {
+        console.error('Error al crear usuario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al crear usuario',
+            error: error.message,
+        });
+    }
+};
+
+
+/**
+ * UPDATE actualziar un usuario existosamente
+ * PUT /api/users/:id
+ * auth bearer token requerido
+ * validaciones
+ * auxiliar solo puede actualziar su propio perfil
+ * auxiliar no puede cambiar su rol
+ * admin, coordinador pueden actualizar otros usuarios
+ * respuestas:
+ * 200: usuario actualizado
+ * 403: acceso denegado, sun permiso para actualizar (auxiliar intentando acceder a otro usuario)
+ * 404: usuario no encontrado
+ * 500: error de servidor
+ */
+
+
+
+exports.updateUser = async (req, res) => {
+    try {
+
+        //restriccion: axiliar solo puede actualizar su propio perfil
+
+        if (req.userRole === 'auxiliar' && req.userId.toString() !== req.params.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permiso para actualizar este usuario',
+            });
+        }
+
+
+        //restriccion: auxiliar no puede cambiar su propio rol
+
+        if (req.userRole === 'auxiliar' && req.body.role) {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permiso para modificar tu rol',
+            });
+        }
+
+        //actualizar usuario
+        const updateUser = await User.findByIdAndUpdate(req.params.id,
+            { $set: req.body },
+            { new: true }, //retorna documento actualizado
+
+        ).select('-password'); //no retorna la contraña
+
+        if (!updateUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'usuario no encontrado',
+
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Usuario actualizado',
+            user: updateUser,
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar usuario',
+            error: error.message,
+        });
+    }
+};
+
+
+/**
+ * DELETE user eliminar un usuario existosamente
+ * delete /api/users/:id
+ * roles: admin
+ * query params:
+ * hardDelete= true eliminar permanente
+ * default soft delete desactivar
+ * auth bearer token requerido 
+ * el admin solo puede desactivar otros admin
+ * respuestas:
+ * 200: usuario actualizado
+ * 403: acceso denegado, sin permiso para eliminar o desactivar (auxiliar intentando acceder a otro usuario)
+ * 404: usuario no encontrado
+ * 500: error de servidor
+ */
+
+
+
+
+
+exports.deleteUser = async (req, res) => {
+    try {
+
+        const isHardDelete = req.query.hardDelete === 'true';
+
+        const userToDelete = await User.findById(req.params.id);
+
+
+        if (!userToDelete) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado',
+            });
+        }
+
+        //proteccion no permitir desactivar otros admin
+        //solo el admin puede desactivar o eliminar otro admin
+
+
+        if (userToDelete.role === 'admin' && userToDelete._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permiso para eliminar o desactivar administradores',
+            
+            });
+        }
+
+        //desactiva al usuario
+
+        if (isHardDelete){
+            //elimina el usuario permanentemente
+            await User.findByIdAndDelete(req.params.id);
+            res.status(200).json({
+                success: true,
+                message: 'Usuario eliminado permanentemente',
+                data: userToDelete,
+            });
+        }else{
+            //softDelete
+            userToDelete.active = false;
+            await userToDelete.save();
+
+            res.status(200).json({
+                success: true,
+                message: 'Usuario desactivado',
+                data: userToDelete,
+            });
+        }
+
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar usuario',
+            error: error.message,
+        });
+    }
+};
+
