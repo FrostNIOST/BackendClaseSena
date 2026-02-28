@@ -42,7 +42,42 @@ const checkRole = (...allowedRoles) => {
             });
         }
 
-        //
+        //verificar si el rol del usuario esta en la lista de roles permitidos 
+        if(!allowedRoles.includes(req.userRole)){
+            return res.status(403).json({
+                success: false,
+                message: `Permisos insuficientes se requiere: ${allowedRoles.join(" o ")}`,
+            });
+        }
 
+        //usuario tiene permisos
+        next();    
     }
-}
+};
+
+
+//Funciones para helper para roles especificos
+//verificar que el usuario es admin
+//uso: router.delete('/admin-only', verifyToken), isAdmin, controllerAdmin
+
+
+const isAdmin = (req, res, next) => {
+    return checkRole ('admin')(req, res, next);
+};
+
+//verificar que el usuario es coordinador
+const isCoordinador = (req, res, next) => {
+    return checkRole ('coordinador')(req, res, next);
+};
+
+//verificar que el usuario es auxiliar
+const isAuxiliar = (req, res, next) => {
+    return checkRole ('auxiliar')(req, res, next);
+};
+
+module.exports = {
+    checkRole,
+    isAdmin,
+    isCoordinador,
+    isAuxiliar
+};
