@@ -9,5 +9,5 @@ module.exports={
     //TIEMPO DE EPIRACION DE REFRESCAR TOKENS 
     jwtRefresh: 6048000, // 7 dias
     //numero de rondas para encriptar la contraseña 
-    slatRounds: process.env.SALT_ROUNDS || 8 //
+    saltRounds: process.env.SALT_ROUNDS || 8 //
 };

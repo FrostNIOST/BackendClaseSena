@@ -35,7 +35,7 @@ exports.createProduct = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'todos los campos son obligatorios',
-                requirefields: ['name', 'description', 'price', 'stock', 'category', 'subcategoty']
+                requiredfields: ['name', 'description', 'price', 'stock', 'category', 'subcategory'] 
             });
         }
 
@@ -119,7 +119,7 @@ exports.createProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
     try{
         // Determinar si incluir productos inactivos
-        const includeInactive = req.query.uncludeInactive === 'true';
+        const includeInactive = req.query.includeInactive === 'true';
         const activeFilter = includeInactive ? {}: {active: { $ne: false }};
 
         //Obtener productos con datos relacionados

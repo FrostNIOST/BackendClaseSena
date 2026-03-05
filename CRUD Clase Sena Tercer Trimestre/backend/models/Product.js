@@ -80,7 +80,7 @@ const productSchema = new mongoose.Schema({
 });
 
 /**
- * MIDDLEWARE PRE-SAVE
+ * MIDDLEWARE PRE-SAVE 
  * limpia indices duplicados
  * Mongodb a veces crea multiples indices con el mismo nombre
  * esto causa conflictos la intentar DropIndex o recrear indices 
@@ -92,7 +92,7 @@ const productSchema = new mongoose.Schema({
  * continua con el guardado normal
  */
 
-productSchema.post('save', async function (error, docs, next) {
+productSchema.post('save', async function (error, doc, next) {
         //verifica si es erro de mongodb por violacion de indice unico
 
         if (error.name === 'MongoServerError' && error.code === 11000){

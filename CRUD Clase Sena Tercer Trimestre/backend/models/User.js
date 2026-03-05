@@ -58,7 +58,7 @@ userSchema.pre('save', async function (next) {
     // Si el password no fue modificado no encripta de nuevo
     if (!this.isModified('password')) return next();
     try {
-        const salt = await bcrypt.genSalt();
+        const salt = await bcrypt.genSalt(10);
         //Encriptar el password con el salt generado
         this.password = await bcrypt.hash(this.password, salt);
         next();        
