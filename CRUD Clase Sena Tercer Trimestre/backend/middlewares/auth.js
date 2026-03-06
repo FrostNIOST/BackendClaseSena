@@ -55,7 +55,7 @@ exports.authenticate = async (req, res, next) => {
         //token invalido o error en la verificacion
         let message = 'Token invalido';
         if (error.name === 'TokenExpiredError'){
-            message = 'Token expirado, por favor iniciar secion de nuevo nuevamente';
+            message = 'Token expirado, por favor iniciar sesion de nuevo nuevamente';
         }else if(error.name === 'JsonWebTokenError'){
             message = 'token invalido o mal formado';
         }

@@ -4,7 +4,7 @@
  */
 
 const User = require ('../models/User');
-const bcrypt = require ('bcrypt');
+const bcrypt = require ('bcryptjs');
 const jwt = require ('jsonwebtoken');
 const config = require ('../config/auth.config');
 
@@ -25,6 +25,7 @@ exports.signup = async (req, res) => {
         const user = new User ({
             username: req.body.password,
             email: req.body.email,
+            password: req.body.password,
             role: req.body.role || 'auxiliar' //por defecto el rol es auxiliar
             
         });

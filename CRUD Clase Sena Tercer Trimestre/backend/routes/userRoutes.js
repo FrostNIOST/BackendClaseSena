@@ -24,8 +24,8 @@ router.use ((req, res, next) =>{
 
 //rutas CRUD
 router.post('/', verifyToken, checkRole(['admin', 'coordinador']), userController.createUser);
-router.get('/', checkRole(['admin', 'coordinador', 'auxiliar']), userController.getAllUsers);
-router.get('/:id', userController.getUserById);
+router.get('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), userController.getAllUsers);
+router.get('/:id', verifyToken, userController.getUserById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), userController.updateUser);
 router.delete('/:id', verifyToken, checkRole('admin'), userController.deleteUser);
 

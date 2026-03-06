@@ -29,8 +29,8 @@ const validateProduct = [
 
 //rutas CRUD
 router.post('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), validateProduct, productController.createProduct);
-router.get('/', productController.getProducts);
-router.get('/:id', productController.getProductById);
+router.get('/', verifyToken, productController.getProducts);
+router.get('/:id', verifyToken, productController.getProductById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador']), validateProduct, productController.updateProduct);
 router.delete('/:id', verifyToken, checkRole('admin'), productController.deleteProduct);
 

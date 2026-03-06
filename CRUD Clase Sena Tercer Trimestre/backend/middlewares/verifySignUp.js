@@ -96,7 +96,7 @@ const checkRolesExisted = (req, res, next) => {
 
     // si roles está presente en el request
     if (req.body.role) {
-        // convertir a array si es string (soporta ambos formatos)
+        // guardar los roles en un array soporta un solo rol o multiples en el caso de un usuario tenga varios roles asignados 
         const roles = Array.isArray(req.body.role) ? req.body.role: [req.body.role];
         
         // filtrar roles que no están en la lista valida 

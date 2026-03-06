@@ -5,11 +5,11 @@
  * configura Express, cors, conecta MongoDB, define rutas y conecta con el frontend
  */
 
-require('dotenv').config();
+require('dotenv').config(); //carga las variables de entorno
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const morgan = require('morgan');
+const cors = require('cors'); //permite conectar con  elfrontend
+const morgan = require('morgan'); //imprime las peticiones de la consola
 const config = require('./config');
 
 /**
@@ -39,7 +39,7 @@ const app = express();
 
 //Cors permite las solicitudes desde el frontend
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:3001',
     credentiales: true,
 
 

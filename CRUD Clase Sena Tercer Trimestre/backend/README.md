@@ -13,3 +13,7 @@
 * npm install --save-dev nodemon@3.1.9 para arrancar el server sin detenerlo (se refresca solito)
 
 * *NOTA* npm install para volver a descargar las dependencias (cuando se pone gitignore de los modulos)
+
+
+* ejecucion del codigo cd backend
+* npm start inicia todo en programa

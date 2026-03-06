@@ -26,8 +26,8 @@ const validateSubCategory = [
 
 //rutas CRUD
 router.post('/', verifyToken, checkRole(['admin', 'coordinador']), validateSubCategory, subCategoryController.createSubategory);
-router.get('/', subcategoryController.getSubCategories);
-router.get('/:id', subcategoryController.getSubCategoriesById);
+router.get('/', verifyToken, subcategoryController.getSubCategories);
+router.get('/:id', verifyToken, subcategoryController.getSubCategoriesById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador']), validateSubCategory, subCategoryController.updateSubCategory);
 router.delete('/:id', verifyToken, checkRole('admin'), subCategoryController.deleteSubCategory);
 

@@ -105,6 +105,6 @@ if (typeof verifyTokenFn !== 'function'){
 
 //exportar el middleware
 module.exports = {
-    verifyTokenFn: verifyTokenFn
+    verifyToken: verifyTokenFn
 
 };
