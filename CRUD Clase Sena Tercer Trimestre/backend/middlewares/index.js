@@ -6,7 +6,7 @@
 
 
 const authJWT = require('./authJwt');
-const verifySingUp = require('./');
+const verifySingUp = require('./verifySignUp');
 
 // exportar los middlewares agrupados por modulo
 module.exports = {

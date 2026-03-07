@@ -14,8 +14,8 @@ const { checkRole} = require('../middlewares/role');
 //rutas de autenticacion
 
 //requiere email-usuario y password
-router.post('/signin', verifyToken, authController.signIn);
-router.post('/signup', verifyToken, checkRole('admin'), verifySingUp.chedkDuplicateUsernameOrEmail, verifySingUp.checkRolesExisted, authController.signUp);
+router.post('/signin', verifyToken, authController.signin);
+router.post('/signup', verifyToken, checkRole('admin'), verifySingUp.chedkDuplicateUsernameOrEmail, verifySingUp.checkRolesExisted, authController.signup);
 
 
 

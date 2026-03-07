@@ -19,11 +19,11 @@ const {verifyToken} = require('../middlewares/authJwt');
 const { checkRole} = require('../middlewares/role');
 
 const validateProduct = [
-    check('name').not().isEmpty().withmessage('el nombre es obligario'),
-    check('price').not().isEmpty().withmessage('el precio es obligatorio'),
-    check('stock').not().isEmpty().withmessage('el stock es obligatorio'),
-    check('category').not().isEmpty().withmessage('la categoria es obligatoria'),
-    check('subCategory').not().isEmpty().withmessage('la subcategoria es obligatoria'),
+    check('name').not().isEmpty().withMessage('el nombre es obligario'),
+    check('price').not().isEmpty().withMessage('el precio es obligatorio'),
+    check('stock').not().isEmpty().withMessage('el stock es obligatorio'),
+    check('category').not().isEmpty().withMessage('la categoria es obligatoria'),
+    check('subCategory').not().isEmpty().withMessage('la subcategoria es obligatoria'),
     
 ];
 

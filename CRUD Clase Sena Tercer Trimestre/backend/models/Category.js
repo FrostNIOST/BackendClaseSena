@@ -46,7 +46,7 @@ const categorySchema = new mongoose.Schema({
  * continua con el guardado normal
  */
 
-caterorySchema.pre('save', async function (next) {
+categorySchema.pre('save', async function (next) {
     try{
         //obtener referencia de la coleccion de MongoDB
         const collection = this.constructor.collection;

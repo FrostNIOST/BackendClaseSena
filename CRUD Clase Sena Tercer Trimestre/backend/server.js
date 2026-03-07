@@ -17,17 +17,17 @@ const config = require('./config');
  * verifica que las variables de entorno requeridas esten definidas
  */
 
-if (!process.env.MONGO_URI) {
+if (!process.env.MONGODB_URI) {
     console.log('Error: MONGO_URI no esta definida en env');
     process.exit(1);
 }
 
-if (!process.env.JTW_SECRET) {
+if (!process.env.JWT_SECRET) {
     console.log('Error: JTW_SECRET no esta definida en env');
     process.exit(1);
 }
 //importar todas las rutas 
-const authRoutes = require('./routes/authRoutes');
+//const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
