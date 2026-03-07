@@ -18,7 +18,7 @@ module.exports = {
 
     //configuracion de bases de datos
     DB:{
-        URL: process.env.MONGODB_URI || 'mongodb://localhost:27027/crud-mongo', OPTIONS: {
+        URL: process.env.MONGODB_URI || 'mongodb://localhost:27017/crud-mongo', OPTIONS: {
             useNewUriParser: true,
             useUnifiedTopology: true,
         

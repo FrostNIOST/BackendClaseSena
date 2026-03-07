@@ -13,7 +13,7 @@ const categorySchema = new mongoose.Schema({
 
     },
     
-    descripcion:{
+    description:{
         type: String,
         required: [true, 'la descripcion es requerida'],
         unique: true,
