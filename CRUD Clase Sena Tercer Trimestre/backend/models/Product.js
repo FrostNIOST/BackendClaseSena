@@ -8,20 +8,27 @@
  * validacion de valores numericos (no negativos)
 */
 
-const mongoose = require ('mongoose');
+const mongoose = require('mongoose');
 //campos de la tabla
 const productSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: [true, 'el nombre es obligario'],
         unique: true, //no puede haber dos productos con el mismo nombre
         trim: true,
 
     },
-    
+
+    //Descripción del producto - requerida
+    description: {
+        type: String,
+        required: [true, 'La descripción es requerida'],
+        trim: true
+    },
+
     //precio en unidades monetarias
     //nopuede ser negativo
-    price:{
+    price: {
         type: Number,
         required: [true, 'El precio es obligatorio'],
         unique: true,
@@ -29,7 +36,7 @@ const productSchema = new mongoose.Schema({
 
     },
 
-    stock:{
+    stock: {
         type: Number,
         required: [true, 'El stock es obligatorio'],
         min: [0, 'El stock no puede ser negativo'],
@@ -39,14 +46,14 @@ const productSchema = new mongoose.Schema({
     // relacion 1 - muchos una categoria puede tener muchas subcategorias
     //un producto pertenece a una subacategoria, pero una subacategoria puede tener muchos productos uno a muchos
 
-    category:{
+    category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category', //puede ser poblado con .populate ('category')
         required: [true, 'La categoria es requerida']
 
     },
 
-        subCategory:{
+    subCategory: {
         type: mongoose.Schema.Types.ObjectId,
         //type: String,
         ref: 'Subcategory', //puede ser poblado con .populate ('subcategory')
@@ -56,7 +63,7 @@ const productSchema = new mongoose.Schema({
 
     //quien creo el producto
     //referencia de user no requerido
-    createdBy:{
+    createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', //puede ser poblado con .populate ('subcategory') 
     },
@@ -68,12 +75,12 @@ const productSchema = new mongoose.Schema({
     }],
 
     // activa el producto pero no lo elimina
-    active:{
+    active: {
         type: Boolean,
-        default: true,        
+        default: true,
 
     },
-},{
+}, {
     timestamps: true,
     versionKey: false,
 
@@ -93,16 +100,16 @@ const productSchema = new mongoose.Schema({
  */
 
 productSchema.post('save', async function (error, doc, next) {
-        //verifica si es erro de mongodb por violacion de indice unico
+    //verifica si es erro de mongodb por violacion de indice unico
 
-        if (error.name === 'MongoServerError' && error.code === 11000){
-           return next (new  Error ('Ya existe un producto con ese nombre'))
-            
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+        return next(new Error('Ya existe un producto con ese nombre'))
 
-        }
-        next(error);
-    }   
-    
+
+    }
+    next(error);
+}
+
 );
 
 /**

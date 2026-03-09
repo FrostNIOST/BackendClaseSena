@@ -28,11 +28,11 @@ const Category = require('../models/Category');
 
 exports.createSubategory = async (req, res) => {
     try {
-        const { name, descripcion, category } = req.body;
+        const { name, description, category } = req.body;
         //validar que la subcategoria padre exista
         const parentCategory = await Category.findById(category);
         if (!parentCategory) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: 'La categoria no existe'
             });
@@ -42,11 +42,11 @@ exports.createSubategory = async (req, res) => {
         // crear nueva subcategoria
         const newSubcategory = new Subcategory({
             name: name.trim(),
-            descripcion: descripcion.trim(),
-            category: category,
+            description: description.trim(),
+            category: category
         });
 
-        await newSubategory.save();
+        await newSubcategory.save();
 
         res.status(201).json({
             success: true,
@@ -182,7 +182,7 @@ exports.updateSubcategory = async (req, res) => {
             req.params.id,
             {
                 name: name ? name.trim() : undefined,
-                descripcion: descripcion ? descripcion.trim() : undefined,
+                description: descripcion ? descripcion.trim() : undefined,
                 category
             },
             { new: true, runValidators: true }
@@ -270,10 +270,10 @@ exports.deleteSubcategory = async (req, res) => {
 
 
             //desactivar todas las subcategorias relacionadas
-            const subcategories = await SubCategory.updateMany(
-                { category: req.params.id },
-                { active: false },
-            );
+            //const subcategories = await SubCategory.updateMany(
+                //{ category: req.params.id },
+                //{ active: false },
+            //);
 
 
             //desactivar todos los productos relacionados

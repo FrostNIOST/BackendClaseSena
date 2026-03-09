@@ -16,10 +16,10 @@ const subcategorySchema = new mongoose.Schema({
 
     },
     
-    descripcion:{
+    description:{
         type: String,
         required: [true, 'la descripcion es requerida'],
-        unique: true,
+        //unique: true,
         trim: true,
 
     },

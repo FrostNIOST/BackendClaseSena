@@ -22,6 +22,14 @@ async function seedData() { // Función async que inserta datos de ejemplo en la
   await Subcategory.deleteMany({}); // Elimina TODAS las subcategorías existentes
   await Category.deleteMany({}); // Elimina TODAS las categorías existentes
 
+  // Eliminar índice problemático si existe
+  try {
+    await mongoose.connection.db.collection('subcategories').dropIndex('descripcion_1');
+    console.log('Índice descripcion_1 eliminado');
+  } catch (error) {
+    console.log('Índice descripcion_1 no existía o ya fue eliminado');
+  }
+
   // Crear categorías
   const categories = await Category.insertMany([ // Inserta múltiples categorías en un solo comando; retorna array con los documentos creados (incluye sus _id)
     { name: 'Electrónica', description: 'Dispositivos electrónicos' }, // Categoría 0: categories[0]

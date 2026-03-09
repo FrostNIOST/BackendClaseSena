@@ -23,7 +23,7 @@ const Category = require('../models/Category');
 
 exports.createCategory = async (req, res) => {
     try {
-        const { name, descripcion } = req.body;
+        const { name, description } = req.body;
         //validacion de los campos de entrada
         if (!name || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({
@@ -33,7 +33,7 @@ exports.createCategory = async (req, res) => {
             });
         }
 
-        if (!descripcion || typeof name !== 'string' || !name.trim()) {
+        if (!description || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({
                 success: false,
                 message: 'El descripción es obligatorio debe ser texto valido',
@@ -43,7 +43,7 @@ exports.createCategory = async (req, res) => {
 
         // limpiar los escpacios en blaco
         const trimmedName = name.trim();
-        const trimmedDesc = descripcion.trim();
+        const trimmedDesc = description.trim();
 
         //verifica si ya existe una categoria con el mismo nombre 
         const existingCategory = await Category.findOne({ name: trimmedName });
@@ -57,7 +57,7 @@ exports.createCategory = async (req, res) => {
         // crear nueva categoria
         const newCategory = new Category({
             name: trimmedName,
-            descripcion: trimmedDesc,
+            description: trimmedDesc,
         });
 
         await newCategory.save();
@@ -175,7 +175,7 @@ exports.getCategoriesById = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     try {
-        const { name, descripcion } = req.body;
+        const { name, description } = req.body;
         const updateData = {};
 
         //Solo actualizar campos que dueron enviados 
@@ -195,8 +195,8 @@ exports.updateCategory = async (req, res) => {
                 });
             }
         }
-        if (descripcion) {
-            updateData.descripcion = descripcion.trim();
+        if (description) {
+            updateData.description = description.trim();
 
         }
 
@@ -277,7 +277,7 @@ exports.deleteCategory = async (req, res) => {
             await Product.deleteMany({ category: req.params.id })
 
             //paso 3 eliminar todos los productos de las subcategorias de esta categoria
-            await Product.deleteMany({ subCategory: { $in: subIds } });
+            await Product.deleteMany({ subcategory: { $in: subIds } });
 
             // paso 4 eliminar todas las subcategorias de esta categoria
 
