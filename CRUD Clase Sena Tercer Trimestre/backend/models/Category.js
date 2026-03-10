@@ -16,7 +16,7 @@ const categorySchema = new mongoose.Schema({
     description:{
         type: String,
         required: [true, 'la descripcion es requerida'],
-        unique: true,
+        //unique: true,
         trim: true,
 
     },

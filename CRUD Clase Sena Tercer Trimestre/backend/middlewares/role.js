@@ -31,7 +31,11 @@
  * 
  */
 
-const checkRole = (...allowedRoles) => {
+const checkRole = (allowedRoles) => {
+    // Ensure allowedRoles is an array
+    if (!Array.isArray(allowedRoles)) {
+        allowedRoles = [allowedRoles];
+    }
     return (req, res, next) => {
         //valida que el usuario fue autenticado y verifyToken ejecutado
         //req, userRole es establecido por verifyToken middleware
@@ -46,7 +50,7 @@ const checkRole = (...allowedRoles) => {
         if(!allowedRoles.includes(req.userRole)){
             return res.status(403).json({
                 success: false,
-                message: `Permisos insuficientes se requiere: ${allowedRoles.join(" o ")}`,
+                message: `Permisos insuficientes se requiere: ${allowedRoles.join(",")}`,
             });
         }
 

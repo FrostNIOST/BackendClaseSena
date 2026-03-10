@@ -46,7 +46,7 @@ exports.createCategory = async (req, res) => {
         const trimmedDesc = description.trim();
 
         //verifica si ya existe una categoria con el mismo nombre 
-        const existingCategory = await Category.findOne({ name: trimmedName });
+        const existingCategory = await Category.findOne({ name: trimmedName, active: { $ne: false } });
         if (existingCategory) {
             return res.status(400).json({
                 success: false,
@@ -202,7 +202,7 @@ exports.updateCategory = async (req, res) => {
 
         //Acutalizar la categoria e la base de datos
         const updateCategory = await Category.findOneAndUpdate(
-            req.params.id,
+            { _id: req.params.id },
             updateData,
             { new: true, runValidators: true }
         );

@@ -32,6 +32,6 @@ router.post('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), v
 router.get('/', verifyToken, productController.getProducts);
 router.get('/:id', verifyToken, productController.getProductById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador']), validateProduct, productController.updateProduct);
-router.delete('/:id', verifyToken, checkRole('admin'), productController.deleteProduct);
+router.delete('/:id', verifyToken, checkRole(['admin']), productController.deleteProduct);
 
 module.exports = router;

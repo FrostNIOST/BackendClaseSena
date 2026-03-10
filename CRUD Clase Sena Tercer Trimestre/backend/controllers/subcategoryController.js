@@ -178,13 +178,14 @@ exports.updateSubcategory = async (req, res) => {
 
 
         //construir un objeto de actualizacion solo con campos enviados
+        const updateData = {};
+        if (name) updateData.name = name.trim();
+        if (descripcion) updateData.description = descripcion.trim();
+        if (category) updateData.category = category;
+
         const updateSubcategory = await Subcategory.findOneAndUpdate(
-            req.params.id,
-            {
-                name: name ? name.trim() : undefined,
-                description: descripcion ? descripcion.trim() : undefined,
-                category
-            },
+            { _id: req.params.id },
+            updateData,
             { new: true, runValidators: true }
         );
         if (!updateSubcategory) {
@@ -265,22 +266,23 @@ exports.deleteSubcategory = async (req, res) => {
             });
         } else {
             //soft delete solo marcar como inactivo 
-            products.active = false;
-            await products.save();
+            subcategory.active = false;
+            await subcategory.save();
 
-
-            //desactivar todas las subcategorias relacionadas
-            //const subcategories = await SubCategory.updateMany(
-                //{ category: req.params.id },
-                //{ active: false },
-            //);
-
-
-            //desactivar todos los productos relacionados
-            const products = await Product.updateMany(
-                { category: req.params.id },
+            //desactivar todos los productos relacionados con esta subcategoria
+            const productsDeactivated = await Product.updateMany(
+                { subCategory: req.params.id },
                 { active: false },
             );
+
+            res.status(200).json({
+                success: true,
+                message: 'Subcategoria desactivada exitosamente',
+                data: {
+                    subcategory: subcategory,
+                    productsDeactivated: productsDeactivated.modifiedCount
+                }
+            });
         }
 
 

@@ -50,6 +50,7 @@ function error(endpoint, response) { // Imprime detalles del error si el test fa
 // Suite de pruebas
 async function runTests() { // Función principal que ejecuta todos los tests en orden
   const timestamp = Date.now(); // Genera un número único basado en la hora actual para evitar duplicados en username/nombre
+  const uniqueId = `${timestamp}_${Math.random().toString(36).substring(2, 8)}`; // ID único más robusto
   console.log('\n\ud83d\ude80 INICIANDO PRUEBAS DEL API CRUD-MONGO\n'); // Imprime encabezado de inicio de pruebas
 
   // ============= AUTENTICACIÓN =============
@@ -59,7 +60,7 @@ async function runTests() { // Función principal que ejecuta todos los tests en
   // Login - Admin
   let res = await request('POST', '/auth/signin', { // Envía petición de login con credenciales de admin
     username: 'admin',      // Usuario admin creado con seedUsers.js
-    password: 'admin123'    // Contraseña del admin
+    password: 'admin12345'    // Contraseña del admin
   });
   log('Login admin', res.ok && res.status === 200, `(Status: ${res.status})`); // Verifica que el login respondió 200 OK
   if (res.ok) { // Si el login fue exitoso
@@ -87,9 +88,9 @@ async function runTests() { // Función principal que ejecuta todos los tests en
 
   // Crear usuario
   const newUser = { // Datos del usuario de prueba con timestamp para evitar duplicados
-    username: `testuser${timestamp}`, // Username único gracias al timestamp
-    email: `test${timestamp}@example.com`, // Email único gracias al timestamp
-    password: 'test123',  // Contraseña del usuario de prueba
+    username: `testuser${uniqueId}`, // Username único
+    email: `test${uniqueId}@example.com`, // Email único
+    password: 'test123456',  // Contraseña del usuario de prueba (min 10 chars)
     role: 'auxiliar'      // Rol menos privilegiado
   };
   res = await request('POST', '/users', newUser); // Petición POST /api/users con datos del nuevo usuario
@@ -127,9 +128,10 @@ async function runTests() { // Función principal que ejecuta todos los tests en
 
   // Crear categoría
   const newCategory = { // Datos de la categoría de prueba con timestamp para evitar duplicados
-    name: `Test Category ${timestamp}`,  // Nombre único gracias al timestamp
+    name: `TestCategory_${uniqueId}`,  // Nombre único
     description: 'Categoría de prueba'  // Descripción de la categoría
   };
+  console.log('Creating category with name:', newCategory.name);
   res = await request('POST', '/categories', newCategory); // Petición POST /api/categories con token de admin
   const catCreated = res.data?.data || res.data; // Extrae la categoría creada de la respuesta
   const catCreateOk = res.ok && res.status === 201; // Verifica que se recibió 201 Created
@@ -165,7 +167,7 @@ async function runTests() { // Función principal que ejecuta todos los tests en
 
   // Crear subcategoría
   const newSubcategory = { // Datos de la subcategoría de prueba con timestamp para evitar duplicados
-    name: `Test Subcategory ${timestamp}`,       // Nombre único
+    name: `Test Subcategory ${uniqueId}`,       // Nombre único
     description: 'Subcategoría de prueba',       // Descripción
     category: categoryId || '000000000000000000000001' // ID de la categoría padre (creada antes); valor fallback si no existe
   };
@@ -204,12 +206,12 @@ async function runTests() { // Función principal que ejecuta todos los tests en
 
   // Crear producto
   const newProduct = { // Datos del producto de prueba con timestamp para evitar duplicados
-    name: `Test Product ${timestamp}`,   // Nombre único
+    name: `Test Product ${uniqueId}`,   // Nombre único
     description: 'Producto de prueba',   // Descripción
     price: 99.99,                        // Precio de prueba (positivo, válido)
     stock: 10,                           // Stock de prueba (positivo, válido)
     category: categoryId || '000000000000000000000001',    // ID de la categoría creada; fallback si no existe
-    subcategory: subcategoryId || '000000000000000000000001' // ID de la subcategoría creada; fallback si no existe
+    subCategory: subcategoryId || '000000000000000000000001' // ID de la subcategoría creada; fallback si no existe
   };
   res = await request('POST', '/products', newProduct); // Petición POST /api/products con token de admin
   const prodCreated = res.data?.data || res.data; // Extrae el producto creado de la respuesta

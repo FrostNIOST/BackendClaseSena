@@ -18,13 +18,16 @@ const dbConfig = require('./config/db'); // Trae la URL de conexión
 
 
 async function seed() { // Función async que inserta usuarios de prueba en la BD
-  await mongoose.connect(dbConfig.url, { useNewUrlParser: true, useUnifiedTopology: true }); // Conectar a la base de datos
+  await mongoose.connect(dbConfig.url); // Conectar a la base de datos
+
+  // Limpiar usuarios existentes
+  await User.deleteMany({});
 
   const users = [ // Array con los datos de los usuarios de ejemplo a crear
     {
       username: 'admin',             // Nombre de usuario del administrador
       email: 'admin@example.com',    // Email del administrador
-      password: 'admin12356',          // Contraseña en texto plano; el pre-save hook del modelo la encriptará automáticamente
+      password: 'admin12345',          // Contraseña en texto plano; el pre-save hook del modelo la encriptará automáticamente
       role: 'admin'                  // Rol con acceso total al sistema
     },
     {
@@ -35,14 +38,9 @@ async function seed() { // Función async que inserta usuarios de prueba en la B
     }
   ];
 
-  for (const user of users) { // Itera sobre cada usuario del array para crearlo si no existe
-    const exists = await User.findOne({ username: user.username }); // Busca en la BD si ya existe un usuario con ese username
-    if (!exists) { // Si no existe, lo crea
-      await User.create(user); // Crea el documento en la colección 'users'; el pre-save hook encripta la contraseña
-      console.log(`Usuario creado: ${user.username}`); // Confirma la creación del usuario en consola
-    } else { // Si ya existe, lo omite
-      console.log(`Usuario ya existe: ${user.username}`); // Informa que el usuario ya estaba en la BD
-    }
+  for (const user of users) { // Itera sobre cada usuario del array para crearlo
+    await User.create(user); // Crea el documento en la colección 'users'; el pre-save hook encripta la contraseña
+    console.log(`Usuario creado: ${user.username}`); // Confirma la creación del usuario en consola
   }
 
   mongoose.connection.close(); // Cierra la conexión a MongoDB para liberar recursos

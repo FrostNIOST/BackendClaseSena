@@ -23,7 +23,7 @@ exports.signup = async (req, res) => {
     try{
         //crea nuevo usuario
         const user = new User ({
-            username: req.body.password,
+            username: req.body.username,
             email: req.body.email,
             password: req.body.password,
             role: req.body.role || 'auxiliar' //por defecto el rol es auxiliar

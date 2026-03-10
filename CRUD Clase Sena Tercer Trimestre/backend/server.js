@@ -27,7 +27,7 @@ if (!process.env.JWT_SECRET) {
     process.exit(1);
 }
 //importar todas las rutas 
-//const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
@@ -64,6 +64,9 @@ mongoose.connect(process.env.MONGODB_URI)
 });
 
 //registra rutas
+
+//rutas de autenticacion
+app.use('/api/auth', authRoutes);
 
 //rutas de usuario CRUD
 app.use('/api/users', userRoutes);

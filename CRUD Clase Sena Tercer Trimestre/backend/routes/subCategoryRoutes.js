@@ -29,6 +29,6 @@ router.post('/', verifyToken, checkRole(['admin', 'coordinador']), validateSubCa
 router.get('/', verifyToken, subCategoryController.getSubcategories);
 router.get('/:id', verifyToken, subCategoryController.getSubcategoriesById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador']), validateSubCategory, subCategoryController.updateSubcategory);
-router.delete('/:id', verifyToken, checkRole('admin'), subCategoryController.deleteSubcategory);
+router.delete('/:id', verifyToken, checkRole(['admin']), subCategoryController.deleteSubcategory);
 
 module.exports = router;

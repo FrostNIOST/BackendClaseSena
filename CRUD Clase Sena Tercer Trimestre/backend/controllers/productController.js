@@ -8,7 +8,7 @@
  */
 const Category = require("../models/Category");
 const Subcategory = require("../models/SubCategory");
-const Products = require("../models/Product");
+const Product = require("../models/Product");
 /**
  * create: crear nuevo producto
  * POST /api/products
@@ -28,14 +28,14 @@ const Products = require("../models/Product");
 
 exports.createProduct = async (req, res) => {
     try{
-        const {name, description, price, stock, category, subcategory} = req.body;        
+        const {name, description, price, stock, category, subCategory} = req.body;        
         // ===== VALIDACIONES =====
         // Verificar que todos los campos requeridos esten presentes
-        if (!name || !description || !price || !stock || !category || !subcategory) {
+        if (!name || !description || !price || !stock || !category || !subCategory) {
             return res.status(400).json({
                 success: false,
                 message: 'todos los campos son obligatorios',
-                requiredfields: ['name', 'description', 'price', 'stock', 'category', 'subcategory'] 
+                requiredfields: ['name', 'description', 'price', 'stock', 'category', 'subCategory'] 
             });
         }
 
@@ -51,7 +51,7 @@ exports.createProduct = async (req, res) => {
 
         //Validar que la subcategoria existe y pertenece a la categoria especificada
         const subcategoryExist = await Subcategory.findOne({
-            _id: subcategory,
+            _id: subCategory,
             category: category
         });
         if (!subcategoryExist) {
@@ -61,13 +61,13 @@ exports.createProduct = async (req, res) => {
             });
         }
         // ===== CREAR PRODUCTO =====
-        const product = new Products({
+        const product = new Product({
             name,
             description,
             price,
             stock,
             category,
-            subcategory
+            subCategory
         });
 
         // Si hay usuario autenticado, registrar quien creo el producto
@@ -79,9 +79,9 @@ exports.createProduct = async (req, res) => {
         const savedProduct = await product.save();
 
         // Obtener producto poblado con datos de realciones (populate)
-        const productWithDetails = await Products.findById(savedProduct._id)
+        const productWithDetails = await Product.findById(savedProduct._id)
         .populate('category', 'name')
-        .populate('subcategory', 'name')
+        .populate('subCategory', 'name')
         .populate('createdBy', 'username email');
 
         return res.status(201).json({
@@ -125,7 +125,7 @@ exports.getProducts = async (req, res) => {
         //Obtener productos con datos relacionados
         const products = await Product.find(activeFilter)
         .populate('category', 'name')
-        .populate('subcategory', 'name')
+        .populate('subCategory', 'name')
         .sort({ createdAt: -1});
 
         // Si el usuario es auxiliar, no mostrar informacion de quien lo creó
@@ -159,9 +159,9 @@ exports.getProducts = async (req, res) => {
  */
 exports.getProductById = async (req, res) => {
     try{        
-        const product = await Products.findById(req.params.id)
+        const product = await Product.findById(req.params.id)
             .populate('category', 'name description')
-            .populate('subcategory', 'name description');
+            .populate('subCategory', 'name description');
 
         if (!product) {
             return res.status(404).json({
@@ -198,7 +198,7 @@ exports.getProductById = async (req, res) => {
      */
     exports.updateProduct = async (req, res) => {
         try {
-            const { name, description, price, stock, category, subcategory} = req.body;
+            const { name, description, price, stock, category, subCategory} = req.body;
             const updateData = {};
 
             // Agrega solo los campos que fueron enviados
@@ -207,10 +207,10 @@ exports.getProductById = async (req, res) => {
             if (price) updateData.price = price;
             if (stock) updateData.stock = stock;
             if (category) updateData.category = category;
-            if (subcategory) updateData.subcategory = subcategory;
+            if (subCategory) updateData.subCategory = subCategory;
 
             // Validar relaciones si se actualizan
-            if (category || subcategory) {
+            if (category || subCategory) {
                 if (category) {
                     const categoryExist = await Category.findById(category);
                     if(!categoryExist){
@@ -221,9 +221,9 @@ exports.getProductById = async (req, res) => {
                     }
                 }
                 
-                if (subcategory) {
+                if (subCategory) {
                     const subcategoryExist = await Subcategory.findOne({
-                        _id: subcategory.$necategory,
+                        _id: subCategory,
                          category: category || updateData.category
                     });
                     if (!subcategoryExist) {
@@ -238,11 +238,11 @@ exports.getProductById = async (req, res) => {
             
 
             // Actualizar producto en BD
-            const updateProduct = await Products.findByIdAndUpdate(req.params.id, updateData, {
+            const updateProduct = await Product.findByIdAndUpdate(req.params.id, updateData, {
                 new: true,
                 runValidators: true
             }).populate('category', 'name')
-            .populate('subcategory', 'name')
+            .populate('subCategory', 'name')
             .populate('createdBy', 'username email');
 
             if (!updateProduct) {
@@ -279,7 +279,7 @@ exports.getProductById = async (req, res) => {
     exports.deleteProduct = async (req, res) => {
         try{            
             const isHardDelete = req.query.hardDelete === 'true';
-            const product = await Products.findById(req.params.id);
+            const product = await Product.findById(req.params.id);
             
             if (!product) {
                 return res.status(404).json({
@@ -290,7 +290,7 @@ exports.getProductById = async (req, res) => {
 
             if (isHardDelete) {
                 // ===== HARD DELETE: Eliminar permanentemente de la BD =====
-                await Products.findByIdAndDelete(req.params.id);
+                await Product.findByIdAndDelete(req.params.id);
                 res.status(200).json({
                     success: true,
                     message: 'Producto eliminado permanentemente de la base de datos',

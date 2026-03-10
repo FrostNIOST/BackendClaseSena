@@ -27,7 +27,7 @@ router.post('/', verifyToken, checkRole(['admin', 'coordinador']), userControlle
 router.get('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), userController.getAllUsers);
 router.get('/:id', verifyToken, userController.getUserById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), userController.updateUser);
-router.delete('/:id', verifyToken, checkRole('admin'), userController.deleteUser);
+router.delete('/:id', verifyToken, checkRole(['admin']), userController.deleteUser);
 
 module.exports = router;
 

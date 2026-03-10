@@ -11,24 +11,16 @@ const dbConfig = require('./config/db');
 // Modelos → cada uno representa una colección en MongoDB
 // Archivos: backend/models/Category.js, Subcategory.js, Product.js
 const Category = require('./models/Category');
-const Subcategory = require('./models/Subcategory');
+const Subcategory = require('./models/SubCategory');
 const Product = require('./models/Product');
 
 async function seedData() { // Función async que inserta datos de ejemplo en la BD
-  await mongoose.connect(dbConfig.url, { useNewUrlParser: true, useUnifiedTopology: true }); // Conecta a MongoDB usando la URL de dbConfig
+  await mongoose.connect(dbConfig.url); // Conecta a MongoDB usando la URL de dbConfig
 
   // Limpiar datos previos
   await Product.deleteMany({}); // Elimina TODOS los productos existentes (tabla limpia antes de insertar)
   await Subcategory.deleteMany({}); // Elimina TODAS las subcategorías existentes
   await Category.deleteMany({}); // Elimina TODAS las categorías existentes
-
-  // Eliminar índice problemático si existe
-  try {
-    await mongoose.connection.db.collection('subcategories').dropIndex('descripcion_1');
-    console.log('Índice descripcion_1 eliminado');
-  } catch (error) {
-    console.log('Índice descripcion_1 no existía o ya fue eliminado');
-  }
 
   // Crear categorías
   const categories = await Category.insertMany([ // Inserta múltiples categorías en un solo comando; retorna array con los documentos creados (incluye sus _id)
@@ -49,13 +41,13 @@ async function seedData() { // Función async que inserta datos de ejemplo en la
 
   // Crear productos
   await Product.insertMany([ // Inserta productos referenciando los _id de categorías y subcategorías creadas
-    { name: 'iPhone 14', description: 'Smartphone Apple', price: 1200, stock: 10, subcategory: subcategories[0]._id, category: categories[0]._id }, // Celular de Electrónica
-    { name: 'Samsung Galaxy S23', description: 'Smartphone Samsung', price: 1000, stock: 15, subcategory: subcategories[0]._id, category: categories[0]._id }, // Celular de Electrónica
-    { name: 'MacBook Pro', description: 'Laptop Apple', price: 2500, stock: 5, subcategory: subcategories[1]._id, category: categories[0]._id }, // Laptop de Electrónica
-    { name: 'Camiseta básica', description: 'Camiseta de algodón', price: 20, stock: 50, subcategory: subcategories[2]._id, category: categories[1]._id }, // Camiseta de Ropa
-    { name: 'Pantalón jeans', description: 'Pantalón de mezclilla', price: 40, stock: 30, subcategory: subcategories[3]._id, category: categories[1]._id }, // Pantalón de Ropa
-    { name: 'Sartén antiadherente', description: 'Para cocina', price: 30, stock: 20, subcategory: subcategories[4]._id, category: categories[2]._id }, // Cocina de Hogar
-    { name: 'Florero decorativo', description: 'Para sala', price: 25, stock: 25, subcategory: subcategories[5]._id, category: categories[2]._id } // Decoración de Hogar
+    { name: 'iPhone 14', description: 'Smartphone Apple', price: 1200, stock: 10, subCategory: subcategories[0]._id, category: categories[0]._id }, // Celular de Electrónica
+    { name: 'Samsung Galaxy S23', description: 'Smartphone Samsung', price: 1000, stock: 15, subCategory: subcategories[0]._id, category: categories[0]._id }, // Celular de Electrónica
+    { name: 'MacBook Pro', description: 'Laptop Apple', price: 2500, stock: 5, subCategory: subcategories[1]._id, category: categories[0]._id }, // Laptop de Electrónica
+    { name: 'Camiseta básica', description: 'Camiseta de algodón', price: 20, stock: 50, subCategory: subcategories[2]._id, category: categories[1]._id }, // Camiseta de Ropa
+    { name: 'Pantalón jeans', description: 'Pantalón de mezclilla', price: 40, stock: 30, subCategory: subcategories[3]._id, category: categories[1]._id }, // Pantalón de Ropa
+    { name: 'Sartén antiadherente', description: 'Para cocina', price: 30, stock: 20, subCategory: subcategories[4]._id, category: categories[2]._id }, // Cocina de Hogar
+    { name: 'Florero decorativo', description: 'Para sala', price: 25, stock: 25, subCategory: subcategories[5]._id, category: categories[2]._id } // Decoración de Hogar
   ]);
 
   console.log('Datos de ejemplo insertados correctamente.'); // Confirma en consola que todos los datos se insertaron
