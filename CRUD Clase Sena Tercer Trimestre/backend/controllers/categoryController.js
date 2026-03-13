@@ -284,7 +284,7 @@ exports.deleteCategory = async (req, res) => {
             await SubCategory.deleteMany({ category: req.params.id });
 
             //paso 5 Eliminar la categoria misma
-            await category.findByIdAndDelete(req.params.id);
+            await Category.findByIdAndDelete(req.params.id);
 
             res.status(200).json({
                 success: true,
@@ -314,7 +314,7 @@ exports.deleteCategory = async (req, res) => {
 
             res.status(200).json({
                 success: true,
-                message: 'Categoria desactivaa exitosamente y su subcategoria y productos asociados',
+                message: 'Categoria desactivada exitosamente y su subcategoria y productos asociados',
                 data: {
                     category: category,
                     subcategoriesDesactivated: subcategories.modifiedCount,

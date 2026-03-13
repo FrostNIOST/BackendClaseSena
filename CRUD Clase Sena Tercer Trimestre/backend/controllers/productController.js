@@ -90,7 +90,7 @@ exports.createProduct = async (req, res) => {
             data: productWithDetails
         });
     } catch (error) {
-        console.error("Error al crear nuevo producto", error);
+        console.error("Error al crear nuevo producto, ya existe un producto con ese nombre", error);
         // manejo error de duplicado (campo unico)
         if (error.code === 11000) {
             return res.status(400).json({

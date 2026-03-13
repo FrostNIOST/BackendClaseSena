@@ -162,7 +162,7 @@ exports.getSubcategoriesById = async (req, res) => {
 
 exports.updateSubcategory = async (req, res) => {
     try {
-        const { name, descripcion, category } = req.body;
+        const { name, description, category } = req.body;
 
         //verificar si cambia la categoria padre
 
@@ -180,7 +180,7 @@ exports.updateSubcategory = async (req, res) => {
         //construir un objeto de actualizacion solo con campos enviados
         const updateData = {};
         if (name) updateData.name = name.trim();
-        if (descripcion) updateData.description = descripcion.trim();
+        if (description) updateData.description = description.trim();
         if (category) updateData.category = category;
 
         const updateSubcategory = await Subcategory.findOneAndUpdate(
@@ -258,7 +258,7 @@ exports.deleteSubcategory = async (req, res) => {
 
             res.status(200).json({
                 success: true,
-                message: 'subcategoria permentemente eliminada y sus subcategorias y productos relacionados',
+                message: 'subcategoria permentemente eliminada y sus productos relacionados',
                 data: {
                     subcategory: subcategory,
                 
