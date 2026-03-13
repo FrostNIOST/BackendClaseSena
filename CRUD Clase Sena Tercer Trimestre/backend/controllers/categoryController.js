@@ -201,12 +201,12 @@ exports.updateCategory = async (req, res) => {
         }
 
         //Acutalizar la categoria e la base de datos
-        const updateCategory = await Category.findOneAndUpdate(
-            { _id: req.params.id },
+        const updatedCategory = await Category.findByIdAndUpdate(
+            req.params.id ,
             updateData,
             { new: true, runValidators: true }
         );
-        if (!updateCategory) {
+        if (!updatedCategory) {
             return res.status(404).json({
                 success: false,
                 message: 'Categoria no encontrada'
@@ -215,7 +215,7 @@ exports.updateCategory = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Categoria actualizada existosamente',
-            data: updateCategory,
+            data: updatedCategory,
         });
 
     } catch (error) {
