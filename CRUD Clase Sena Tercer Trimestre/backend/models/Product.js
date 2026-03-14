@@ -31,7 +31,6 @@ const productSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: [true, 'El precio es obligatorio'],
-        unique: true,
         min: [0, 'El precio no puede ser negativo'],
 
     },

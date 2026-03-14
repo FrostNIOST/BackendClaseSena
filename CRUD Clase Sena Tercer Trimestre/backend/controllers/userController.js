@@ -75,47 +75,35 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('password');
-
-
+        const user = await User.findById(req.params.id).select('-password');
 
         if (!user) {
-            //los auxiliares solo pueden ver su propio usuario
             return res.status(404).json({
                 success: false,
                 message: 'Usuario no encontrado',
             });
         }
-        res.status(200).json({
-            success: true,
-            data: user,
-        });
-        //validaciopnes de acceso
+
+        //validaciones de acceso
         //los auxiliares solo pueden ver su propio usuario
         if (req.userRole === 'auxiliar' && req.userId !== req.params.id) {
             return res.status(403).json({
                 success: false,
                 message: 'Acceso denegado',
             });
-
         }
-        res.status(200).json({
-            success: true,
-            data: user,
-        });
 
-        //validaciopnes de acceso
         //los coordinadores no pueden ver los administradores
-        if (req.userRole === 'coordinador' && req.userId !== req.params.id) {
+        if (req.userRole === 'coordinador' && user.role === 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Acceso denegado, no puedes ver los administradores',
             });
-
         }
+
         res.status(200).json({
             success: true,
-            user,
+            data: user,
         });
 
     } catch (error) {
@@ -186,6 +174,8 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
+        // Asegurar que req.body sea un objeto
+        if (!req.body) req.body = {};
 
         //restriccion: axiliar solo puede actualizar su propio perfil
 
@@ -209,7 +199,7 @@ exports.updateUser = async (req, res) => {
         //actualizar usuario
         const updateUser = await User.findByIdAndUpdate(req.params.id,
             { $set: req.body },
-            { new: true }, //retorna documento actualizado
+            { new: true, runValidators: true }, //retorna documento actualizado
 
         ).select('-password'); //no retorna la contraña
 
@@ -274,13 +264,10 @@ exports.deleteUser = async (req, res) => {
 
         //proteccion no permitir desactivar otros admin
         //solo el admin puede desactivar o eliminar otro admin
-
-
-        if (userToDelete.role === 'admin' && userToDelete._id.toString()) {
+        if (userToDelete.role === 'admin' && req.userRole !== 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'No tienes permiso para eliminar o desactivar administradores',
-            
             });
         }
 

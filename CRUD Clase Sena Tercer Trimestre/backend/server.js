@@ -40,7 +40,7 @@ const app = express();
 //Cors permite las solicitudes desde el frontend
 app.use(cors({
     origin: 'http://localhost:3001',
-    credentiales: true,
+    credentials: true,
 
 
 }));
