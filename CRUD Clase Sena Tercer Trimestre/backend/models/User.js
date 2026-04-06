@@ -28,17 +28,25 @@ const userSchema = new  mongoose.Schema({
     password:{
         type: String,
         required: true,
-        unique: true,
         minlength: 10,
         select: false,  //no incluye en resultados por defecto    
+    },
+
+    //telefono opcional, solo numeros, longitud entre 7 y 15 caracteres
+    phone: {
+        type: String,
+        required: false,
+        unique: true,
+        trim: true,
+        match: [/^\d{7,15}$/, 'El número de teléfono no es válido!'], //valida solo numeros y longitud
     },
 
     //rol del usuario restringe valores especificos
     role:{
         type: String,
-        enum: ['admin', 'coordinador', 'auxiliar'],
+        enum: ['admin', 'coordinador', 'auxiliar', 'user'],
         //valores permitidos
-        default: 'auxiliar', // por defecto, los nuevos usuarios son auxiliar
+        default: 'user', // por defecto, los nuevos usuarios son auxiliar
     },
 
     active: {
@@ -52,6 +60,11 @@ const userSchema = new  mongoose.Schema({
     timestamps: true, // agrega createdAt y apdatedAt automaticamnete
     versionKey: false, // no incluir _v en el contro de versiones de mongoose
 });
+
+// Índices explícitos para enforcing unique + sparse para campos opcionales
+userSchema.index({ email: 1 }, { unique: true, sparse: true });
+userSchema.index({ username: 1 }, { unique: true, sparse: true });
+userSchema.index({ phone: 1 }, { unique: true, sparse: true });
 
 //Middleware escrita la contraseña antes de guardar el usuario
 userSchema.pre('save', async function (next) {

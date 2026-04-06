@@ -21,12 +21,16 @@ const config = require ('../config/auth.config');
 
 exports.signup = async (req, res) => {
     try{
+        //normaliza campos para evitar envío en español o inglés
+        const phone = req.body.phone || req.body.telefono;
+
         //crea nuevo usuario
         const user = new User ({
             username: req.body.username,
             email: req.body.email,
+            phone,
             password: req.body.password,
-            role: req.body.role || 'auxiliar' //por defecto el rol es auxiliar
+            role: req.body.role || 'user' //por defecto el rol es auxiliar
             
         });
 
@@ -37,6 +41,7 @@ exports.signup = async (req, res) => {
             id: savedUser._id,
             role: savedUser.role,
             email:savedUser.email,
+            phone: savedUser.phone,
         },
         config.secret,
         {expiresIn: config.jwtExpiration}
@@ -48,6 +53,7 @@ exports.signup = async (req, res) => {
         id: savedUser._id,
         username: savedUser.username,
         email:savedUser.email,
+        phone: savedUser.phone,
         role: savedUser.role,
     };
 
@@ -60,6 +66,82 @@ exports.signup = async (req, res) => {
     });
     
     }catch(error){
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(409).json({
+                success: false,
+                message: `Ya existe un usuario con ese ${field}`,
+                error: error.message,
+            });
+        }
+        return res.status(500).json({
+            success: false,
+            message: 'Error al registrar usuario',
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Register: registro público para usuarios con rol 'user'
+ * POST /api/auth/register
+ * Body (username, email, password, phone)
+ * Crea usuario con rol 'user' automáticamente
+ */
+
+exports.register = async (req, res) => {
+    try{
+        //normaliza campos para evitar envío en español o inglés
+        const phone = req.body.phone || req.body.telefono;
+
+        //crea nuevo usuario con rol fijo 'user'
+        const user = new User ({
+            username: req.body.username,
+            email: req.body.email,
+            phone,
+            password: req.body.password,
+            role: 'user' //rol fijo para registro público
+            
+        });
+
+        //guardar en base de datos
+        const savedUser = await user.save();
+        const token = jwt.sign({
+            id: savedUser._id,
+            role: savedUser.role,
+            email:savedUser.email,
+            phone: savedUser.phone,
+        },
+        config.secret,
+        {expiresIn: config.jwtExpiration}
+    );
+
+    //preparando respuesta sin mostrar contraseña
+    const UserResponse ={
+        id: savedUser._id,
+        username: savedUser.username,
+        email:savedUser.email,
+        phone: savedUser.phone,
+        role: savedUser.role,
+    };
+
+    res.status(200).json({
+        success: true,
+        message: 'Usuario registrado correctamente',
+        token: token,
+        user: UserResponse,
+
+    });
+    
+    }catch(error){
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(409).json({
+                success: false,
+                message: `Ya existe un usuario con ese ${field}`,
+                error: error.message,
+            });
+        }
         return res.status(500).json({
             success: false,
             message: 'Error al registrar usuario',
@@ -82,10 +164,10 @@ exports.signup = async (req, res) => {
 exports.signin = async (req, res) =>{
     try{
         //validar que se envie el email o username
-        if (!req.body.email && !req.body.username){
+        if (!req.body.email && !req.body.username && !req.body.phone){
             return res.status(400).json({
                 success:false,
-                message: 'Email o username requerido',
+                message: 'Email, username o teléfono requerido',
             });
         }
 
@@ -101,11 +183,12 @@ exports.signin = async (req, res) =>{
         const user = await User.findOne({
             $or:[
                 {username: req.body.username},
+                {phone: req.body.phone},
                 {email: req.body.email},
 
             ]
         }).select('+password'); // include password field
-        //si no encuentra el usuariocon este email o username
+        //si no encuentra el usuariocon este email o username o telefono
         if (!user){
             return res.status(404).json({
                 success: false,
@@ -136,6 +219,7 @@ exports.signin = async (req, res) =>{
             id: user._id,
             role: user.role,
             email: user.email,
+            phone: user.phone,
 
         },
         config.secret,
@@ -147,6 +231,7 @@ exports.signin = async (req, res) =>{
         id: user._id,
         username: user.username,
         email: user.email,
+        phone: user.phone,
         role: user.role,
     };
     res.status(200).json({

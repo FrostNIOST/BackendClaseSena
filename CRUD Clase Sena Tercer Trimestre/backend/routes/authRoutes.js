@@ -15,6 +15,9 @@ const { checkRole} = require('../middlewares/role');
 
 //requiere email-usuario y password
 router.post('/signin', authController.signin);
+// Registro público para usuarios con rol 'user' (auxiliar)
+router.post('/register', verifySingUp.chedkDuplicateUsernameOrEmail, verifySingUp.checkRolesExisted, authController.register);
+// Registro administrativo (requiere admin)
 router.post('/signup', verifyToken, checkRole(['admin']), verifySingUp.chedkDuplicateUsernameOrEmail, verifySingUp.checkRolesExisted, authController.signup);
 
 

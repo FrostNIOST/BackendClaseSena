@@ -42,23 +42,24 @@ const User = require('../models/User');
 const chedkDuplicateUsernameOrEmail = async (req, res, next) => {
     try{
         // validar que ambos campos estan presentes
-        if (!req.body.username || !req.body.email) {
+        if (!req.body.username || !req.body.email || !req.body.phone) {
             return res.status(400).json({
-                message: 'Username y email son requeridos'
+                message: 'Username, email y teléfono son requeridos'
             });
         }
         // Buscar usuario existente con igual username o email
         const user = await User.findOne({
             $or:[
                 { username: req.body.username},
-                { email: req.body.email}
+                { email: req.body.email},
+                { phone: req.body.phone }
             ]
         }) .exec();
         // si encuentra un suario retornar error
         if (user) {
             return res.status(400).json({
                 success: false,
-                message: 'Username o email ya existen'
+                message: 'Username, email o teléfono ya existen'
             });
         }
         // no hay duplicados continuar 
@@ -92,7 +93,7 @@ const chedkDuplicateUsernameOrEmail = async (req, res, next) => {
  */
 const checkRolesExisted = (req, res, next) => {
     // lista blanca de roles validos en el sistema
-    const validRoles = ['admin', 'coordinador', 'auxiliar'];
+    const validRoles = ['admin', 'coordinador', 'auxiliar', 'user'];
 
     // si roles está presente en el request
     if (req.body.role) {

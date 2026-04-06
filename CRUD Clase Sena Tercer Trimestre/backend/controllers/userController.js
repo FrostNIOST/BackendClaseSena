@@ -20,6 +20,7 @@
 
 
 const User = require('../models/User');
+const Wishlist = require('../models/Wishlist');
 const bcrypt = require('bcryptjs');
 
 /**
@@ -40,7 +41,7 @@ exports.getAllUsers = async (req, res) => {
         let users;
 
         //control de acceso basado en roles
-        if (req.userRole === 'auxiliar') {
+        if (req.userRole === 'auxiliar' || req.userRole === 'user') {
             //los auxiliares solo pueden ver su propio usuario
             users = await User.find({ _id: req.userId, ...activeFilter }).select('-password');
         } else {
@@ -85,6 +86,16 @@ exports.getUserById = async (req, res) => {
         }
 
         //validaciones de acceso
+        //los users solo pueden ver su propio usuario
+        if (req.userRole === 'user' && req.userId !== req.params.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Acceso denegado',
+            });
+        }
+
+
+
         //los auxiliares solo pueden ver su propio usuario
         if (req.userRole === 'auxiliar' && req.userId !== req.params.id) {
             return res.status(403).json({
@@ -119,6 +130,7 @@ exports.getUserById = async (req, res) => {
 exports.createUser = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
+        const phone = req.body.phone || req.body.telefono;
 
         //crear usuario nuevo
         const user = new User({
@@ -126,7 +138,12 @@ exports.createUser = async (req, res) => {
             email,
             password,
             role,
+            phone,
         });
+
+        //cuando se  crea un nuevo usuario se crea una wishlist vacia para ese usuario
+        await Wishlist.create({id_user: user._id,
+             items: []});
 
 
         //guardar en la base de datos
@@ -140,12 +157,21 @@ exports.createUser = async (req, res) => {
                 username: savedUser.username,
                 email: savedUser.email,
                 role: savedUser.role,
+                phone: savedUser.phone,
             }
         });
 
 
     } catch (error) {
         console.error('Error al crear usuario:', error);
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(409).json({
+                success: false,
+                message: `Ya existe un usuario con ese ${field}`,
+                error: error.message,
+            });
+        }
         res.status(500).json({
             success: false,
             message: 'Error al crear usuario',
@@ -177,12 +203,31 @@ exports.updateUser = async (req, res) => {
         // Asegurar que req.body sea un objeto
         if (!req.body) req.body = {};
 
+
+        //restriccion: user solo puede actualizar su propio perfil
+
+        if (req.userRole === 'user' && req.userId.toString() !== req.params.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permiso para actualizar este usuario',
+            });
+        }
+
         //restriccion: axiliar solo puede actualizar su propio perfil
 
         if (req.userRole === 'auxiliar' && req.userId.toString() !== req.params.id) {
             return res.status(403).json({
                 success: false,
                 message: 'No tienes permiso para actualizar este usuario',
+            });
+        }
+
+        //restriccion: user no puede cambiar su propio rol
+
+        if (req.userRole === 'user' && req.body.role) {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permiso para modificar tu rol',
             });
         }
 
