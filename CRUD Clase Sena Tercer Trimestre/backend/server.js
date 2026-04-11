@@ -6,6 +6,10 @@
  */
 
 require('dotenv').config(); //carga las variables de entorno
+
+// Configurar timezone al del sistema
+process.env.TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors'); //permite conectar con  elfrontend
@@ -33,6 +37,7 @@ const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const subCategoryRoutes = require('./routes/subCategoryRoutes');
 const statisticsRoutes = require('./routes/statisticsRouter');
+const wishlistRoutes = require('./routes/wishlistRoutes');
 
 //iniciar express
 const app = express();
@@ -82,6 +87,9 @@ app.use('/api/subcategories', subCategoryRoutes);
 
 //Rutas de estadisticas 
 app.use('/api/statistics', statisticsRoutes);
+
+//rutas de wishlist
+app.use('/api/wishlist', wishlistRoutes); 
 
 //manejo de errores globales
 app.use((req, res) =>{

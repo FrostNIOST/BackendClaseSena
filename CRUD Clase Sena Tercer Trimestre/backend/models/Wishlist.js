@@ -9,15 +9,19 @@ const mongoose = require ('mongoose');
 const wishlistSchema = new mongoose.Schema({
     id_user:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'users', //puede ser poblado con .populate ('user')
+        ref: 'User', //puede ser poblado con .populate ('user')
         required: [true, 'el usuario es obligatorio'],
         trim: true,
 
     },
-    items:[{
+    products:[{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'products', //puede ser poblado con .populate ('products')
+        ref: 'Product', //puede ser poblado con .populate ('products')
     }],
+    active:{
+        type: Boolean,
+        default: true,
+    },
 },{
     timestamps: true,
     versionKey: false,

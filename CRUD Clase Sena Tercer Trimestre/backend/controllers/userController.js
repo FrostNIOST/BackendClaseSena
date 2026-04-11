@@ -141,13 +141,12 @@ exports.createUser = async (req, res) => {
             phone,
         });
 
-        //cuando se  crea un nuevo usuario se crea una wishlist vacia para ese usuario
-        await Wishlist.create({id_user: user._id,
-             items: []});
-
-
         //guardar en la base de datos
         const savedUser = await user.save();
+
+        //cuando se  crea un nuevo usuario se crea una wishlist vacia para ese usuario
+        await Wishlist.create({id_user: savedUser._id,
+             products: []});
 
         res.status(201).json({
             success: true,
@@ -158,6 +157,7 @@ exports.createUser = async (req, res) => {
                 email: savedUser.email,
                 role: savedUser.role,
                 phone: savedUser.phone,
+
             }
         });
 

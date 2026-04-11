@@ -3,10 +3,11 @@
  * maneja el registro del login y generacion de tokens JWT
  */
 
-const User = require ('../models/User');
-const bcrypt = require ('bcryptjs');
-const jwt = require ('jsonwebtoken');
-const config = require ('../config/auth.config');
+const User = require('../models/User');
+const Wishlist = require('../models/Wishlist');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../config/auth.config');
 
 
 /**
@@ -20,18 +21,18 @@ const config = require ('../config/auth.config');
  */
 
 exports.signup = async (req, res) => {
-    try{
+    try {
         //normaliza campos para evitar envío en español o inglés
         const phone = req.body.phone || req.body.telefono;
 
         //crea nuevo usuario
-        const user = new User ({
+        const user = new User({
             username: req.body.username,
             email: req.body.email,
             phone,
             password: req.body.password,
             role: req.body.role || 'user' //por defecto el rol es auxiliar
-            
+
         });
 
         //guardar en base de datos
@@ -40,32 +41,32 @@ exports.signup = async (req, res) => {
         const token = jwt.sign({
             id: savedUser._id,
             role: savedUser.role,
-            email:savedUser.email,
+            email: savedUser.email,
             phone: savedUser.phone,
         },
-        config.secret,
-        {expiresIn: config.jwtExpiration}
-    );
+            config.secret,
+            { expiresIn: config.jwtExpiration }
+        );
 
-    //preparando respuesta sin mostrar conteraseña
+        //preparando respuesta sin mostrar conteraseña
 
-    const UserResponse ={
-        id: savedUser._id,
-        username: savedUser.username,
-        email:savedUser.email,
-        phone: savedUser.phone,
-        role: savedUser.role,
-    };
+        const UserResponse = {
+            id: savedUser._id,
+            username: savedUser.username,
+            email: savedUser.email,
+            phone: savedUser.phone,
+            role: savedUser.role,
+        };
 
-    res.status(200).json({
-        success: true,
-        message: 'Usuario registrado correctamente',
-        token: token,
-        user: UserResponse,
+        res.status(200).json({
+            success: true,
+            message: 'Usuario registrado correctamente',
+            token: token,
+            user: UserResponse,
 
-    });
-    
-    }catch(error){
+        });
+
+    } catch (error) {
         if (error.code === 11000) {
             const field = Object.keys(error.keyValue)[0];
             return res.status(409).json({
@@ -90,50 +91,56 @@ exports.signup = async (req, res) => {
  */
 
 exports.register = async (req, res) => {
-    try{
+    try {
         //normaliza campos para evitar envío en español o inglés
         const phone = req.body.phone || req.body.telefono;
 
         //crea nuevo usuario con rol fijo 'user'
-        const user = new User ({
+        const user = new User({
             username: req.body.username,
             email: req.body.email,
             phone,
             password: req.body.password,
             role: 'user' //rol fijo para registro público
-            
+
         });
 
         //guardar en base de datos
         const savedUser = await user.save();
+        //cuando se  crea un nuevo usuario se crea una wishlist vacia para ese usuario
+        await Wishlist.create({
+            id_user: savedUser._id,
+            products: []
+        });
+        
         const token = jwt.sign({
             id: savedUser._id,
             role: savedUser.role,
-            email:savedUser.email,
+            email: savedUser.email,
             phone: savedUser.phone,
         },
-        config.secret,
-        {expiresIn: config.jwtExpiration}
-    );
+            config.secret,
+            { expiresIn: config.jwtExpiration }
+        );
 
-    //preparando respuesta sin mostrar contraseña
-    const UserResponse ={
-        id: savedUser._id,
-        username: savedUser.username,
-        email:savedUser.email,
-        phone: savedUser.phone,
-        role: savedUser.role,
-    };
+        //preparando respuesta sin mostrar contraseña
+        const UserResponse = {
+            id: savedUser._id,
+            username: savedUser.username,
+            email: savedUser.email,
+            phone: savedUser.phone,
+            role: savedUser.role,
+        };
 
-    res.status(200).json({
-        success: true,
-        message: 'Usuario registrado correctamente',
-        token: token,
-        user: UserResponse,
+        res.status(200).json({
+            success: true,
+            message: 'Usuario registrado correctamente',
+            token: token,
+            user: UserResponse,
 
-    });
-    
-    }catch(error){
+        });
+
+    } catch (error) {
         if (error.code === 11000) {
             const field = Object.keys(error.keyValue)[0];
             return res.status(409).json({
@@ -161,18 +168,18 @@ exports.register = async (req, res) => {
  * token se usa para autenticar futuras solicitudes
  */
 
-exports.signin = async (req, res) =>{
-    try{
+exports.signin = async (req, res) => {
+    try {
         //validar que se envie el email o username
-        if (!req.body.email && !req.body.username && !req.body.phone){
+        if (!req.body.email && !req.body.username && !req.body.phone) {
             return res.status(400).json({
-                success:false,
+                success: false,
                 message: 'Email, username o teléfono requerido',
             });
         }
 
         //validar que se envie la contraseña correcta
-        if (!req.body.password){
+        if (!req.body.password) {
             return res.status(400).json({
                 success: false,
                 message: 'Password requerido',
@@ -181,15 +188,15 @@ exports.signin = async (req, res) =>{
 
         // busca el usuario por email o por username
         const user = await User.findOne({
-            $or:[
-                {username: req.body.username},
-                {phone: req.body.phone},
-                {email: req.body.email},
+            $or: [
+                { username: req.body.username },
+                { phone: req.body.phone },
+                { email: req.body.email },
 
             ]
         }).select('+password'); // include password field
         //si no encuentra el usuariocon este email o username o telefono
-        if (!user){
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'usuario no encontrado',
@@ -197,8 +204,8 @@ exports.signin = async (req, res) =>{
         }
 
         //Verificar que el usuario tenga conraseña
-        if (!user.password){
-            return res.status (500).json({
+        if (!user.password) {
+            return res.status(500).json({
                 success: false,
                 message: 'Error interno: usuario sin contraseña',
             });
@@ -207,8 +214,8 @@ exports.signin = async (req, res) =>{
 
         //comparar la contraseña emviada con el hash alamecenado
         const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
-        if (!isPasswordValid){
-            return res.status (401).json({
+        if (!isPasswordValid) {
+            return res.status(401).json({
                 success: false,
                 message: 'Contraseña incorrecta',
             });
@@ -222,27 +229,27 @@ exports.signin = async (req, res) =>{
             phone: user.phone,
 
         },
-        config.secret,
-        {expiresIn: config.jwtExpiration}
-    );
+            config.secret,
+            { expiresIn: config.jwtExpiration }
+        );
 
-    // prepara respuesta sin mostrar contraseña 
-    const UserResponse = {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-    };
-    res.status(200).json({
-        success: true,
-        message: 'inicio de sesion exitoso',
-        token:token,
-        user: UserResponse,
+        // prepara respuesta sin mostrar contraseña 
+        const UserResponse = {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+        };
+        res.status(200).json({
+            success: true,
+            message: 'inicio de sesion exitoso',
+            token: token,
+            user: UserResponse,
 
-    }); 
+        });
 
-    }catch(error){
+    } catch (error) {
         return res.status(500).json({
             success: false,
             message: 'Error al iniciar sesion',

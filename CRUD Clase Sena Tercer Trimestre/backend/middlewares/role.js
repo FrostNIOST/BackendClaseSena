@@ -79,9 +79,15 @@ const isAuxiliar = (req, res, next) => {
     return checkRole ('auxiliar')(req, res, next);
 };
 
+//verificar que el usuario es user
+const isUser = (req, res, next) => {
+    return checkRole ('user')(req, res, next);
+};
+
 module.exports = {
     checkRole,
     isAdmin,
     isCoordinador,
-    isAuxiliar
+    isAuxiliar,
+    isUser
 };

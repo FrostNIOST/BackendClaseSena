@@ -6,6 +6,7 @@
  * esto asegura que cada wishlist este siempre asociada al usuario correcto
  * y evita problemas de integridad de datos si el id del usuario se cambiara accidentalmente
  * no se puede borrar ni desactivar una wishlist, solo agregar o quitar productos
+ * las cantidades se manejan en el carrito no en la wishlist
  * respuestas:
  * 403: no autorizado para modificar el id del usuario en la wishlist
  * 500: error de servidor
@@ -22,32 +23,276 @@
  * 
 */
 const Wishlist = require('../models/Wishlist');
-const Product = require('../models/Product');
-const User = require('../models/User');
+/**
+ * (get)getWishlist obtener la wishlist del usuario autenticado
+ * GET /api/wishlist
+ * auth bearer token requerido
+ */
+exports.getWishlist = async (req, res) => {
+    try {
+        const userId = req.userId;
+        //buscar la wishlist activa del usuario
+        const wishlist = await Wishlist.findOne({ id_user: userId, active: true })
+            .populate("products.Product");
+        //saber como se esta enviando la consulta a la base de datos, si el id_user se esta enviando como string o como ObjectId, esto es importante para que la consulta funcione correctamente
+        if (!wishlist) {
+            return res.status(404).json({ success: false, message: 'Wishlist no encontrada' });
+        }
+
+        const items = wishlist.products.map(p => ({
+            id: p._id,
+            nombre: p.name,
+            precio: p.price,
+            inStock: p.stock > 0,
+        }));
+
+        res.status(200).json({ success: true, data: { wishlistId: wishlist._id, products: items } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al obtener la wishlist', error: error.message });
+    }
+
+}
+
+/**
+ * (get)getWishlistById obtener detalles de una wishlist por su id
+ * GET /api/wishlist/:id
+ * auth bearer token requerido
+ */
+
+exports.getWishlistById = async (req, res) => {
+    try {
+        const wishlistId = req.params.id;
+        const userId = req.userId;
+        const userWishlist = await Wishlist.findById(wishlistId).populate("products.Product");
+
+        if (!userWishlist) {
+            return res.status(404).json({
+                success: false,
+                message: 'Wishlist no encontrada',
+            });
+        }
+
+        // Verificar si el usuario autenticado es el propietario o es admin
+        if (userWishlist.id_user.toString() !== userId && req.userRole !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'No autorizado para ver esta wishlist',
+            });
+        }
+
+        const items = userWishlist.products.map(p => ({
+            id: p.product._id,
+            nombre: p.product.nombre,
+            precio: p.product.precio,
+            inStock: p.product.stock > 0,
+            active: p.active
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: {
+                wishlistId: userWishlist._id,
+                products: items
+            }
+        });
+
+    } catch (error) {
+        console.error('CONTROLLER Error en getWishlistById:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener la wishlist',
+        });
+    }
+}
 
 
 /**
- * ADD agregar un producto a la wishlist
+ * (ADD)addWishlistItem agregar un producto a la wishlist
  * PUT /api/wishlist/:id
  * auth bearer token requerido
  * validaciones:
- * la cantidad debe ser minimo 1
+ * no se pude repetir el mismo producto en la wishlist, si el producto ya esta en la wishlist
  * no debe afectar el stock del producto, la wishlist es una lista de deseos, no una reserva
  * respuestas:
  * 200: producto agregado exitosamente a la wishlist
  * 400: cantidad no valida o producto no disponible
- * 404: producto no encontrado
+ * 403: no autorizado para modificar el id del usuario en la wishlist
+ * 404: wishlist no encontrada
  * 500: error de servidor
  */
 
 exports.addWishlistItem = async (req, res) => {
     try {
+        const userId = req.userId; // Obtener el ID del usuario autenticado
+        const { productId } = req.body;
 
-    }catch (error) {
+        const wishlist = await Wishlist.findOneAndUpdate(
+            { id_user: userId },
+            { $addToSet: { products: productId } }, // Agrega el producto a la wishlist sin duplicados
+            { new: true, upsert: true }, // Devuelve la wishlist actualizada, crea si no existe
+        ).populate("products");
+
+
+
+        if (!wishlist) {
+            return res.status(404).json({
+                success: false,
+                message: 'Wishlist no encontrada para el usuario',
+            });
+        }
+        
+        if (!wishlist.products.some(product => product._id.toString() === productId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Producto no agregado a la wishlist, puede que ya esté en la lista',
+            });
+        }
+
+        //los auxiliares, user y coordinador solo pueden modificar y ver su propia wishlist
+        if (req.userRole !== 'admin' && wishlist.id_user.toString() !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'No autorizado para modificar esta wishlist',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Agregado a la wishlist exitosamente',
+            data: {
+                wishlist: wishlist
+            }
+        });
+
+
+
+    } catch (error) {
         console.error('CONTROLLER Error en addWishlistItem:', error);
         res.status(500).json({
             success: false,
             message: 'Error al agregar item a la wishlist',
+            error: error.message,
         });
     }
-}
+},
+
+    /**
+     * (REMOVE)removeWishlistItem: quitar un producto de la wishlist
+     * PUT /api/wishlist/:id
+     * auth bearer token requerido
+     * validaciones:
+     * no se pude repetir el mismo producto en la wishlist, si el producto ya esta en la wishlist
+     * no debe afectar el stock del producto, la wishlist es una lista de deseos, no una reserva
+     * respuestas:
+     * 200: producto agregado exitosamente a la wishlist
+     * 400: cantidad no valida o producto no disponible
+     * 403: no autorizado para modificar el id del usuario en la wishlist
+     * 404: wishlist no encontrada
+     * 500: error de servidor
+     */
+
+
+    exports.removeWishlistItem = async (req, res) => {
+        try {
+            const userId = req.user.id; // Obtener el ID del usuario autenticado
+            const { productId } = req.body;
+
+            const wishlist = await Wishlist.findOneAndUpdate(
+                { id_user: userId },
+                { $pull: { products: productId } }, // Quita el producto de la wishlist
+                { new: true }, // Devuelve la wishlist actualizada
+            ).populate("products");
+
+            if (!wishlist) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Wishlist no encontrada para el usuario',
+                });
+            }
+
+            //los auxiliares, user y coordinador solo pueden modificar y ver su propia wishlist
+            if (req.userRole !== 'admin' && wishlist.id_user.toString() !== userId) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No autorizado para modificar esta wishlist',
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                message: 'Item quitado de la wishlist exitosamente',
+                data: {
+                    wishlist: wishlist
+                }
+            });
+
+        } catch (error) {
+            console.error('CONTROLLER Error en removeWishlistItem:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al quitar item de la wishlist',
+            });
+        }
+    },
+
+    /**
+     * (delete)deleteWishlistItem: eliminar un producto de la wishlist
+     * DELETE /api/wishlist/:id
+     * auth bearer token requerido
+     * validaciones:
+     * no se pude repetir el mismo producto en la wishlist, si el producto ya esta en la wishlist
+     * no debe afectar el stock del producto, la wishlist es una lista de deseos, no una reserva
+     * respuestas:
+     * 200: producto eliminado exitosamente de la wishlist
+     * 400: cantidad no valida o producto no disponible
+     * 403: no autorizado para modificar el id del usuario en la wishlist
+     * 404: wishlist no encontrada
+     * 500: error de servidor
+     */
+
+    exports.deleteWishlistItem = async (req, res) => {
+        try {
+            const userId = req.user.id; // Obtener el ID del usuario autenticado
+            const wishlistId = req.params.id;
+            const { productId } = req.body;
+
+            const wishlist = await Wishlist.findById(wishlistId);
+
+            if (!wishlist) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Wishlist no encontrada',
+                });
+            }
+
+            // Solo los administradores y el usuario propietario de la wishlist pueden eliminar un item de la wishlist
+            if (req.userRole !== 'admin' && wishlist.id_user.toString() !== userId) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No autorizado para modificar esta wishlist',
+                });
+            }
+
+            // Quitar el producto de la wishlist
+            const updatedWishlist = await Wishlist.findByIdAndUpdate(
+                wishlistId,
+                { $pull: { products: productId } },
+                { new: true }
+            ).populate("products.product");
+
+            res.status(200).json({
+                success: true,
+                message: 'Item eliminado de la wishlist exitosamente',
+                data: {
+                    wishlist: updatedWishlist
+                }
+            });
+
+        } catch (error) {
+            console.error('CONTROLLER Error en deleteWishlistItem:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al eliminar item de la wishlist',
+            });
+        }
+    }
