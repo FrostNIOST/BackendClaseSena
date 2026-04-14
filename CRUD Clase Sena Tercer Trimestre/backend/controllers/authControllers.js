@@ -186,16 +186,29 @@ exports.signin = async (req, res) => {
             });
         }
 
-        // busca el usuario por email o por username
-        const user = await User.findOne({
-            $or: [
-                { username: req.body.username },
-                { phone: req.body.phone },
-                { email: req.body.email },
+        // Normalizar valores para búsqueda
+        const username = req.body.username ? req.body.username.trim() : null;
+        const phone = req.body.phone ? req.body.phone.trim() : null;
+        const email = req.body.email ? req.body.email.trim().toLowerCase() : null;
 
-            ]
+        // Crear criterios de búsqueda sólo para los campos que fueron enviados
+        const criteria = [];
+        if (username) criteria.push({ username });
+        if (phone) criteria.push({ phone });
+        if (email) criteria.push({ email });
+
+        if (criteria.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Debe enviar email, username o teléfono válido para iniciar sesión',
+            });
+        }
+
+        const user = await User.findOne({
+            $or: criteria,
         }).select('+password'); // include password field
-        //si no encuentra el usuariocon este email o username o telefono
+
+        //si no encuentra el usuario con este email o username o telefono
         if (!user) {
             return res.status(404).json({
                 success: false,

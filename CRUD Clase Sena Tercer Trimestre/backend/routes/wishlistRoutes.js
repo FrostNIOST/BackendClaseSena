@@ -18,5 +18,6 @@ const { checkRole} = require('../middlewares/role');
 router.get('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), wishlistController.getWishlist);
 router.get('/:id', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), wishlistController.getWishlistById);
 router.put('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), wishlistController.addWishlistItem);
+router.patch('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), wishlistController.removeWishlistItem);
 
 module.exports = router;

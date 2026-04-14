@@ -24,10 +24,11 @@ router.use ((req, res, next) =>{
 
 //rutas CRUD
 router.post('/', verifyToken, checkRole(['admin', 'coordinador']), userController.createUser);
-router.get('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), userController.getAllUsers);
+router.get('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), userController.getAllUsers);
 router.get('/:id', verifyToken, userController.getUserById);
-router.put('/:id', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar']), userController.updateUser);
-router.delete('/:id', verifyToken, checkRole(['admin']), userController.deleteUser);
+router.put('/:id', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), userController.updateUser);
+router.delete('/', verifyToken, checkRole(['admin', 'coordinador', 'auxiliar', 'user']), userController.deleteUser); //eliminar con query param hardDelete=true para eliminar permanentemente o sin el para desactivar
+router.delete('/:id', verifyToken, checkRole(['admin']), userController.deleteUserById);
 
 module.exports = router;
 

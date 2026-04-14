@@ -145,8 +145,10 @@ exports.createUser = async (req, res) => {
         const savedUser = await user.save();
 
         //cuando se  crea un nuevo usuario se crea una wishlist vacia para ese usuario
-        await Wishlist.create({id_user: savedUser._id,
-             products: []});
+        await Wishlist.create({
+            id_user: savedUser._id,
+            products: []
+        });
 
         res.status(201).json({
             success: true,
@@ -274,6 +276,93 @@ exports.updateUser = async (req, res) => {
 
 /**
  * DELETE user eliminar un usuario existosamente
+ * delete /api/users
+ * query params:
+ * hardDelete= true eliminar permanente
+ * default soft delete desactivar
+ * auth bearer token requerido 
+ * solo el propietario puede desactivar su propio usuario o el admin puede desactivar otros usuarios
+ * solo el admin puede eliminar permanentemente otro usuario
+ * respuestas:
+ * 200: usuario actualizado
+ * 403: acceso denegado, sin permiso para eliminar o desactivar (auxiliar intentando acceder a otro usuario)
+ * 404: usuario no encontrado
+ * 500: error de servidor
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const isHardDelete = req.query.hardDelete === 'true';
+        const userToDelete = await User.findById(req.userId);
+
+
+        if (!userToDelete) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado',
+            });
+        }
+
+        //proteccion no permitir desactivar otros admin
+
+        //solo el propietario puede desactivar su propio usuario o el admin puede desactivar otros usuarios
+
+        if (userToDelete._id.toString() !== req.userId && req.userRole !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permiso para eliminar o desactivar este usuario',
+            });
+        }
+
+
+        //desactiva al usuario
+
+        if (isHardDelete) {
+            //elimina el usuario permanentemente y su wishlist asociada
+            //solo el admin puede eliminar permanentemente otro usuario
+            if (req.userRole !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permiso para eliminar permanentemente este usuario',
+                });
+            }
+
+            await User.findByIdAndDelete(req.params.id);
+            await Wishlist.findOneAndDelete({ id_user: req.params.id });
+
+            res.status(200).json({
+                success: true,
+                message: 'Usuario eliminado permanentemente',
+                data: userToDelete,
+            });
+        } else {
+            //softDelete desactiva el usuario sin eliminarlo de la base de datos ademas de su wishlist
+            userToDelete.active = false;
+            await userToDelete.save();
+            await Wishlist.findOneAndUpdate({ id_user: req.params.id }, { active: false });
+            res.status(200).json({
+                success: true,
+                message: 'Usuario desactivado',
+                data: userToDelete,
+            });
+        }
+
+
+
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar usuario',
+            error: error.message,
+        });
+    }
+};
+
+
+
+
+/**
+ * DELETE user eliminar un usuario existosamente
  * delete /api/users/:id
  * roles: admin
  * query params:
@@ -290,9 +379,7 @@ exports.updateUser = async (req, res) => {
 
 
 
-
-
-exports.deleteUser = async (req, res) => {
+exports.deleteUserById = async (req, res) => {
     try {
 
         const isHardDelete = req.query.hardDelete === 'true';
@@ -307,8 +394,8 @@ exports.deleteUser = async (req, res) => {
             });
         }
 
-        //proteccion no permitir desactivar otros admin
         //solo el admin puede desactivar o eliminar otro admin
+
         if (userToDelete.role === 'admin' && req.userRole !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -318,19 +405,29 @@ exports.deleteUser = async (req, res) => {
 
         //desactiva al usuario
 
-        if (isHardDelete){
-            //elimina el usuario permanentemente
+        if (isHardDelete) {
+            //elimina el usuario permanentemente y su wishlist asociada
+            //solo el admin puede eliminar permanentemente otro usuario
+            if (req.userRole !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permiso para eliminar permanentemente este usuario',
+                });
+            }
+
             await User.findByIdAndDelete(req.params.id);
+            await Wishlist.findOneAndDelete({ id_user: req.params.id });
+
             res.status(200).json({
                 success: true,
                 message: 'Usuario eliminado permanentemente',
                 data: userToDelete,
             });
-        }else{
-            //softDelete
+        } else {
+            //softDelete desactiva el usuario sin eliminarlo de la base de datos ademas de su wishlist
             userToDelete.active = false;
             await userToDelete.save();
-
+            await Wishlist.findOneAndUpdate({ id_user: req.params.id }, { active: false });
             res.status(200).json({
                 success: true,
                 message: 'Usuario desactivado',
