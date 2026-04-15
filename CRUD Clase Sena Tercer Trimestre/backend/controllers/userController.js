@@ -150,6 +150,12 @@ exports.createUser = async (req, res) => {
             products: []
         });
 
+        //cuando se  crea un nuevo usuario se crea un carrito vacio para ese usuario
+        await Cart.create({
+            id_user: savedUser._id,
+            products: []
+        });
+
         res.status(201).json({
             success: true,
             message: 'Usuario creado exitosamente',
@@ -328,6 +334,7 @@ exports.deleteUser = async (req, res) => {
 
             await User.findByIdAndDelete(req.params.id);
             await Wishlist.findOneAndDelete({ id_user: req.params.id });
+            //await Cart.findOneAndDelete({ id_user: req.params.id });
 
             res.status(200).json({
                 success: true,
@@ -335,10 +342,11 @@ exports.deleteUser = async (req, res) => {
                 data: userToDelete,
             });
         } else {
-            //softDelete desactiva el usuario sin eliminarlo de la base de datos ademas de su wishlist
+            //softDelete desactiva el usuario sin eliminarlo de la base de datos ademas su wishlist y carrito
             userToDelete.active = false;
             await userToDelete.save();
             await Wishlist.findOneAndUpdate({ id_user: req.params.id }, { active: false });
+            //await Cart.findOneAndUpdate({ id_user: req.params.id }, { active: false });
             res.status(200).json({
                 success: true,
                 message: 'Usuario desactivado',
@@ -417,6 +425,7 @@ exports.deleteUserById = async (req, res) => {
 
             await User.findByIdAndDelete(req.params.id);
             await Wishlist.findOneAndDelete({ id_user: req.params.id });
+            //await Cart.findOneAndDelete({ id_user: req.params.id });
 
             res.status(200).json({
                 success: true,
@@ -424,10 +433,11 @@ exports.deleteUserById = async (req, res) => {
                 data: userToDelete,
             });
         } else {
-            //softDelete desactiva el usuario sin eliminarlo de la base de datos ademas de su wishlist
+            //softDelete desactiva el usuario sin eliminarlo de la base de datos ademas su wishlist y carrito
             userToDelete.active = false;
             await userToDelete.save();
             await Wishlist.findOneAndUpdate({ id_user: req.params.id }, { active: false });
+            //await Cart.findOneAndUpdate({ id_user: req.params.id }, { active: false });
             res.status(200).json({
                 success: true,
                 message: 'Usuario desactivado',

@@ -1,10 +1,12 @@
 /**
  * modelo de categoria MongoDB
- * define la estructura de la categoria
+ * define la estructura del carrito de compras
+ * El carrito depende de un usuario
+ * muchos productos pueden pertenecer a un carrito
 */
 
 const mongoose = require ('mongoose');
-const carritoSchema = new mongoose.Schema({
+const cartSchema = new mongoose.Schema({
     id_user:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', //puede ser poblado con .populate ('user')
@@ -14,6 +16,11 @@ const carritoSchema = new mongoose.Schema({
     products:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product', //puede ser poblado con .populate ('products')
+        quantity: {
+            type: Number,
+            default: 1,
+            min: 1,
+        },
     }],
     active:{
         type: Boolean,
@@ -38,7 +45,7 @@ const carritoSchema = new mongoose.Schema({
  * continua con el guardado normal
  */
 
-carritoSchema.pre('save', async function (error, next){
+cartSchema.pre('save', async function (error, next){
     if (error.name === 'MongoError' && error.code === 11000) {
         try {
             const indexName = Object.keys(error.keyValue)[0] + '_1';
@@ -49,5 +56,5 @@ carritoSchema.pre('save', async function (error, next){
     }
 });
 
-module.exports = mongoose.model('Carrito', carritoSchema);
+module.exports = mongoose.model('Cart', cartSchema);
         
