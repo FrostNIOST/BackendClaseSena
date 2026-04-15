@@ -1,0 +1,47 @@
+@font-face {
+  font-family: 'Raleway';
+  src: url('./assets/fonts/Raleway/static/Raleway-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background-black: #000000;/*segundo color de fondo*/  
+  --font-primary: 'Raleway', raleway-regular; /*letra principal*/
+  --font-weight-light: 300; /*peso ligero*/
+  --font-weight-regular: 400; /*peso regular*/
+  --font-weight-bold: 700; /*peso negrita*/
+  --primary-color: #1E40AF; /*Color principal*/
+  --background-color: #FFFFFF; /*Color de fondo*/
+  --text-color: #1C2E40; /*Color de texto*/
+  --border-color: #4A4A4A; /*Color de bordes*/
+  --headers-bgrkButton-color: #1F4E79; /*Color de botones de encabezados y fondos de botones*/
+  --hover-efect-color: #2AB3A6; /*Color de efecto hover*/
+  --cta-button-color: #6bcb8b;  /*Color de botones de llamada a la acción*/
+  --transition-regular: all 0.3s ease; /*Transición regular*/
+  --transition-fast: all 0.1s ease; /*Transición rápida*/
+  --transition-slow: all 0.5s ease; /*Transición lenta*/
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Raleway';
+  font-weight: var(--font-weight-light);
+  scroll-behavior: smooth;
+  list-style: none;
+}
+
+.cls-1 {
+  fill: none;
+  stroke: #020202;
+  stroke-miterlimit: 10;
+  stroke-width: 1.91px;
+}
+
+
