@@ -19,8 +19,8 @@ const { checkRole} = require('../middlewares/role');
 
 //rutas CRUD
 router.post('/', verifyToken, checkRole(['admin', 'coordinador']), categoryController.createCategory);
-router.get('/', verifyToken,categoryController.getCategories);
-router.get('/:id', verifyToken,categoryController.getCategoriesById);
+router.get('/', categoryController.getCategories);
+router.get('/:id', categoryController.getCategoriesById);
 router.put('/:id', verifyToken, checkRole(['admin', 'coordinador']), categoryController.updateCategory);
 router.delete('/:id', verifyToken, checkRole(['admin']), categoryController.deleteCategory);
 

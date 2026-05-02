@@ -41,8 +41,8 @@ exports.getWishlist = async (req, res) => {
 
         const items = wishlist.products.map(p => ({
             id: p._id,
-            nombre: p.name,
-            precio: p.price,
+            name: p.name,
+            price: p.price,
             inStock: p.stock > 0,
         }));
 

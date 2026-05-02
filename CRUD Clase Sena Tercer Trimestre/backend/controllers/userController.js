@@ -149,12 +149,12 @@ exports.createUser = async (req, res) => {
             id_user: savedUser._id,
             products: []
         });
-
+/*
         //cuando se  crea un nuevo usuario se crea un carrito vacio para ese usuario
         await Cart.create({
             id_user: savedUser._id,
             products: []
-        });
+        });*/
 
         res.status(201).json({
             success: true,

@@ -1,48 +1,136 @@
-//import InfoIcon from "../../assets/icons/svgrepo-Solar Bold Duotone Icons Collection/info-circle-svgrepo-com.svg";
+﻿import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/img/logo de ecommerce ab png recortada.png";
-import SpriteIcon from "../Sprites/SpriteIcon";
 import DropdownMenu from "../DropdownMenu/DropdownMenu";
-//import { useState } from "react";
-import React from "react";
+import SpriteIcon from "../Sprites/SpriteIcon";
+import {
+  AUTH_CHANGE_EVENT,
+  getStoredAuth,
+  signout,
+} from "../../utils/sessionAuth";
+
+const privilegedRoles = ["admin", "coordinador", "auxiliar"];
+
+const roleLabels = {
+  admin: "Administrador",
+  coordinador: "Coordinador",
+  auxiliar: "Auxiliar",
+  user: "Usuario",
+};
 
 function Nav() {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const [categories, setCategories] = React.useState([]);
   const [open, setOpen] = React.useState(false);
+  const [auth, setAuth] = React.useState(() => getStoredAuth());
 
-  const categories = [
-    ["📱", "Smartphones"],
-    ["💻", "Laptops"],
-    ["🎧", "Accesorios"],
-    ["🖱️", "Perifericos"],
-    ["🔥", "Ofertas"],
-  ];
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/categories");
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setCategories(result.data || []);
+        } else {
+          console.error(
+            "Error al cargar categorias:",
+            result.message || response.statusText
+          );
+        }
+      } catch (error) {
+        console.error("Error al cargar categorias:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  React.useEffect(() => {
+    const syncAuth = () => setAuth(getStoredAuth());
+
+    window.addEventListener("storage", syncAuth);
+    window.addEventListener(AUTH_CHANGE_EVENT, syncAuth);
+
+    return () => {
+      window.removeEventListener("storage", syncAuth);
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncAuth);
+    };
+  }, []);
+
+  const categoriesToShow =
+    categories.length > 0
+      ? categories
+      : [
+          { name: "Smartphones" },
+          { name: "Laptops" },
+          { name: "Accesorios" },
+          { name: "Perifericos" },
+          { name: "Ofertas" },
+        ];
+
+  const currentUser = auth?.user ?? null;
+  const currentRole = currentUser?.role ?? null;
+  const canSeePanel = privilegedRoles.includes(currentRole);
+
+  const handleLogout = () => {
+    signout();
+    navigate("/");
+  };
+
+  const accountItems = currentUser
+    ? [
+        {
+          label: currentUser.username || currentUser.email || "Mi cuenta",
+          className: "font-semibold cursor-default hover:bg-gray-100",
+          disabled: true,
+        },
+        {
+          label: `Rol: ${roleLabels[currentRole] || currentRole}`,
+          className: "text-sm text-gray-600 cursor-default hover:bg-gray-100",
+          disabled: true,
+        },
+        ...(canSeePanel
+          ? [
+              {
+                label: "Panel interno",
+                submenu: [
+                  { label: "Entrar al panel", to: "/panel" },
+                  { label: `Acceso para ${roleLabels[currentRole] || currentRole}` },
+                ],
+              },
+            ]
+          : []),
+        { label: "Cerrar sesion", onClick: handleLogout },
+      ]
+    : [
+        { label: "Iniciar sesion", to: "/signin" },
+        { label: "Crear cuenta", to: "/register" },
+      ];
+
   return (
     <nav className="w-full flex flex-col justify-center items-center">
-      {/*Top bar*/}
       <div
-        className="w-full flex justify-between items-center p-3  bg-[--background-black] text-white"
+        className="w-full flex justify-between items-center p-3 bg-[--background-black] text-white"
         style={{ fontFamily: "var(--font-primary)" }}
       >
         <div className="flex w-1/2 gap-5 items-center ml-24">
-          <a
-            href="#id"
+          <Link
+            to="/"
             className="inline-flex cursor-pointer items-center align-middle"
           >
             <img className="w-10 mr-3" src={logo} alt="logo" />
-            <div className="font-bold text-xl ">AB-Commerce</div>
-          </a>
+            <div className="font-bold text-xl">AB-Commerce</div>
+          </Link>
         </div>
 
-        <div className="flex relative w-1/2  items-center -ml-40 py-[1.5%] -mr-32">
+        <div className="flex relative w-1/2 items-center -ml-40 py-[1.5%] -mr-32">
           <select className="bg-gray-300 p-2 w-40 border-none rounded-lg rounded-r-none outline-none text-black py-[1.8%] text-xs">
             <option>Todas las categorias</option>
-            <option>Smartphones</option>
-            <option>Laptops</option>
-            <option>Accesorios</option>
-            <option>Perifericos</option>
+            {categoriesToShow.map((category, index) => (
+              <option key={index}>{category.name}</option>
+            ))}
           </select>
 
           <div className="flex items-center w-full relative">
@@ -63,7 +151,7 @@ function Nav() {
         </div>
 
         <div className="flex w-1/2 justify-end gap-5 items-center mr-24">
-          <button href="#id" className="hover:text-[var(--hover-efect-color)]">
+          <button className="hover:text-[var(--hover-efect-color)]">
             <SpriteIcon
               className="cursor-pointer"
               size="29"
@@ -72,22 +160,26 @@ function Nav() {
             />
           </button>
 
-          <button href="#id" className="hover:text-[var(--hover-efect-color)]">
+          <button className="hover:text-[var(--hover-efect-color)]">
+            <Link to ="/wishlist">
             <SpriteIcon
               className="cursor-pointer"
               size="25"
               color="white"
               name="heart-water-svgrepo-com"
             />
+            </Link>
           </button>
 
-          <button href="#id" className="hover:text-[var(--hover-efect-color)]">
+          <button className="hover:text-[var(--hover-efect-color)]">
+            
             <SpriteIcon
               className="cursor-pointer"
               size="27"
               color="white"
               name="cart-large-2-svgrepo-com"
             />
+            
           </button>
 
           <DropdownMenu
@@ -99,11 +191,11 @@ function Nav() {
                   color="white"
                   name="global-svgrepo-com"
                 />
-                <span className="text-xs leading-none align-middle">▼</span>
+                <span className="text-xs leading-none align-middle">v</span>
               </button>
             }
             items={[
-              { label: "Idioma", submenu: ["Español", "English"] },
+              { label: "Idioma", submenu: ["Espanol", "English"] },
               { label: "Divisa", submenu: ["COP", "USD", "EUR"] },
             ]}
           />
@@ -119,27 +211,32 @@ function Nav() {
                 />
               </button>
             }
-            items={[{ label: "Iniciar sesión" }, { label: "Crear cuenta" }]}
+            items={accountItems}
           />
         </div>
       </div>
 
       <div
-        className="w-full flex justify-between items-center px-3 pb-3  bg-[--background-black] text-white"
+        className="w-full flex justify-between items-center px-3 pb-3 bg-[--background-black] text-white"
         style={{ fontFamily: "var(--font-primary)" }}
       >
         <div className="flex w-1/2 gap-5 items-center ml-24">
           <div
-            className={`w-1/3 px-[1%] lg:px-[1%] py-1 flex justify-between items-center gap-5 transition-all duration-500 ${menuOpen ? "h-auto  backdrop-blur-md shadow-lg rounded-lg" : ""}`}
+            className={`w-1/3 px-[1%] lg:px-[1%] py-1 flex justify-between items-center gap-5 transition-all duration-500 ${
+              menuOpen ? "h-auto backdrop-blur-md shadow-lg rounded-lg" : ""
+            }`}
           >
-            <div className="relative w-1/5 ">
+            <div className="relative w-1/5">
               <div
                 className="flex items-center justify-between cursor-pointer"
-                onClick={() => setOpen(!open)}
+                onClick={() => {
+                  setMenuOpen((prev) => !prev);
+                  setOpen((prev) => !prev);
+                }}
               >
                 <div className="flex items-center gap-2">
-                  <button className="inline-flex items-center align-middle cursor-pointer hover:text-[var(--hover-efect-color)]">
-                    <span className="mr-4">
+                  <button className="inline-flex items-center align-middle cursor-pointer hover:text-[var(--hover-efect-color)] tracking-[0.1em]">
+                    <span className="mr-4 ">
                       <SpriteIcon
                         className="hover:text-[var(--hover-efect-color)] right-0"
                         size="25"
@@ -147,19 +244,19 @@ function Nav() {
                         name="menu-1-svgrepo-com"
                       />
                     </span>
-                    Menú
+                    Menu
                   </button>
                 </div>
                 {open && (
                   <ul className="absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-md overflow-hidden shadow-lg z-10 transition-all duration-300">
-                    {categories.map(([icon, label], i) => (
+                    {categoriesToShow.map((category, index) => (
                       <a
                         href="#"
-                        key={i}
+                        key={index}
                         className="flex items-center gap-3 px-2 py-2 border-b hover:bg-gray-200 last:border-none"
                       >
-                        <span>{icon}</span>
-                        <span>{label}</span>
+                        <span>•</span>
+                        <span>{category.name}</span>
                       </a>
                     ))}
                   </ul>
@@ -170,7 +267,7 @@ function Nav() {
         </div>
 
         <div className="flex w-1/2 justify-end gap-5 items-center mr-24">
-          <button className="inline-flex items-center align-middle cursor-pointer hover:text-[var(--hover-efect-color)]">
+          <button className="inline-flex items-center align-middle cursor-pointer hover:text-[var(--hover-efect-color)] tracking-[0.1em]">
             Filtrar
             <span className="ml-4">
               <SpriteIcon
@@ -188,3 +285,4 @@ function Nav() {
 }
 
 export default Nav;
+

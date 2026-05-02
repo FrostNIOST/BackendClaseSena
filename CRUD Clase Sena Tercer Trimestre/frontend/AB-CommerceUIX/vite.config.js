@@ -12,4 +12,7 @@ export default defineConfig({
     symbolId: 'icon-[dir]-[name]',
   })
   ],
+  server: {
+    port: parseInt(process.env.VITE_PORT) || 3001,
+  },
 })
